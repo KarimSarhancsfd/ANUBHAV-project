@@ -1,0 +1,107 @@
+<div class="dashboard-container py-16 px-4 sm:px-6 lg:px-8 fade-in">
+  <div class="container mx-auto max-w-6xl">
+    <header class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div>
+        <h1 class="text-4xl md:text-5xl font-extrabold font-cinzel text-[#FFD97D] title-glow">
+          {{ translationService.translate('dashboard.title') }}
+        </h1>
+        <p class="text-gray-400 mt-2 text-lg">XAE Sentinel - Legend ID: #4402</p>
+      </div>
+      <button (click)="simulateXP()" class="bg-[#E18D5C] text-white font-bold py-2 px-6 rounded-md hover:bg-[#d47845] transition-all transform hover:scale-105 active:scale-95 btn-cta-glow">
+        Gain Experience
+      </button>
+    </header>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+      <!-- Level Card -->
+      <div class="stat-card p-8 rounded-xl border border-white/10 bg-gray-800/40 backdrop-blur-md relative overflow-hidden group">
+        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+          <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z"/></svg>
+        </div>
+        <h3 class="text-gray-400 uppercase tracking-widest text-sm mb-2">{{ translationService.translate('dashboard.level') }}</h3>
+        <div class="text-6xl font-black font-cinzel text-white">{{ playerService.playerLevel() }}</div>
+      </div>
+
+      <!-- Rank Card -->
+      <div class="stat-card p-8 rounded-xl border border-white/10 bg-gray-800/40 backdrop-blur-md relative overflow-hidden group">
+         <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+          <svg class="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1Z"/></svg>
+        </div>
+        <h3 class="text-gray-400 uppercase tracking-widest text-sm mb-2">{{ translationService.translate('dashboard.rank') }}</h3>
+        <div class="text-4xl font-bold font-cinzel text-[#FFD97D]">{{ translationService.translate(playerService.playerRank()) }}</div>
+      </div>
+
+      <!-- XP Card -->
+      <div class="stat-card p-8 rounded-xl border border-white/10 bg-gray-800/40 backdrop-blur-md">
+        <h3 class="text-gray-400 uppercase tracking-widest text-sm mb-4">{{ translationService.translate('dashboard.xp') }}</h3>
+        <div class="flex justify-between items-end mb-2">
+          <span class="text-2xl font-bold text-white">{{ playerService.playerXP() }} <span class="text-gray-500 text-sm">/ {{ playerService.maxXP() }}</span></span>
+          <span class="text-[#FFD97D] font-bold">{{ playerService.xpPercentage() | number:'1.0-0' }}%</span>
+        </div>
+        <div class="w-full bg-gray-700 h-3 rounded-full overflow-hidden">
+          <div class="bg-gradient-to-r from-[#FFD97D] to-[#E18D5C] h-full transition-all duration-500 ease-out shadow-[0_0_10px_rgba(255,217,125,0.5)]" 
+               [style.width.%]="playerService.xpPercentage()"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <!-- Match History -->
+      <div class="content-panel p-8 rounded-xl border border-white/10 bg-gray-800/30 backdrop-blur-sm">
+        <h3 class="text-2xl font-bold font-cinzel text-white mb-6 border-b border-white/10 pb-4">
+          {{ translationService.translate('dashboard.matchHistory') }}
+        </h3>
+        <div class="space-y-4" [@listAnimation]="playerService.matchHistory().length">
+          @for (match of playerService.matchHistory(); track match.id) {
+            <div class="flex items-center justify-between p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors group">
+              <div class="flex items-center gap-4">
+                <div [class]="match.result === 'victory' ? 'w-2 h-12 bg-green-500' : 'w-2 h-12 bg-red-500'" class="rounded-full shadow-lg"></div>
+                <div>
+                  <div class="text-white font-bold">{{ match.gameMode }}</div>
+                  <div class="text-gray-500 text-sm">{{ match.date }}</div>
+                </div>
+              </div>
+              <div class="text-right">
+                <div [class]="match.result === 'victory' ? 'text-green-400' : 'text-red-400'" class="font-black uppercase tracking-tighter">
+                  {{ translationService.translate('dashboard.match.' + match.result) }}
+                </div>
+                <div class="text-gray-300 font-mono">{{ match.ratio }}</div>
+                @if (match.mvp) {
+                  <span class="text-[10px] bg-[#FFD97D] text-black px-2 py-0.5 rounded-full font-bold ml-auto block w-fit mt-1">
+                    {{ translationService.translate('dashboard.match.mvp') }}
+                  </span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Achievements -->
+      <div class="content-panel p-8 rounded-xl border border-white/10 bg-gray-800/30 backdrop-blur-sm">
+        <h3 class="text-2xl font-bold font-cinzel text-white mb-6 border-b border-white/10 pb-4">
+          {{ translationService.translate('dashboard.achievements') }}
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          @for (achievement of playerService.achievements(); track achievement.id) {
+            <div class="p-4 rounded-lg bg-white/5 border border-white/5 hover:border-[#FFD97D]/30 transition-all group overflow-hidden relative">
+              @if (achievement.locked) {
+                <div class="absolute inset-0 bg-gray-900/60 flex items-center justify-center backdrop-blur-[2px] z-10">
+                   <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                </div>
+              }
+              <div class="relative z-0">
+                <div class="text-white font-bold mb-2">{{ achievement.titleKey }}</div>
+                <div class="w-full bg-gray-700 h-1.5 rounded-full mt-2">
+                  <div class="bg-[#FFD97D] h-full rounded-full transition-all duration-1000" [style.width.%]="achievement.progress"></div>
+                </div>
+                <div class="text-right text-[10px] text-gray-500 mt-1">{{ achievement.progress }}%</div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

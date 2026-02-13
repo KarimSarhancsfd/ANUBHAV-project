@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XAE Game</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      --bg-color-1: #0a0e1a;
+      --bg-color-2: #12182a;
+      background-color: var(--bg-color-1);
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMCIgaGVpZ2h0PSIzMCI+PHJlY3Qgd2lkdGg9IjMwIiBoZWlnaHQ9IjMwIiBmaWxsPSJ0cmFuc3BhcmVudCIvPjxjaXJjbGUgY3g9IjUiIGN5PSI1IiByPSIxIiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjVNLDAuMDMpIi8+PGNpcmNsZSBjeD0iMjUiIGN5PSIyNSIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjVNLDI1NSwwLjAzKSIvPjxjaXJjbGUgY3g9IjE1IiBjeT0iMTAiIHI9IjEiIGZpbGw9InJnYmEoMjVNLDI1NSwyNTUsLDAuMDMpIi8+PGNpcmNsZSBjeD0iMTAiIGN5PSIyMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsMjVNLDI1NSwwLjAzKSIvPjwvc3ZnPg==');
+      animation: pan-particles 120s linear infinite;
+      z-index: -1;
+      opacity: 0.5;
+    }
+
+    .font-cinzel {
+      font-family: 'Cinzel', serif;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1a160f;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #C89B3C;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #FFD97D;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .fade-in {
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(30px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+    .slide-up {
+      opacity: 0;
+      visibility: hidden;
+    }
+    .in-viewport .slide-up, .in-viewport.slide-up {
+      animation: slideUp 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+      visibility: visible;
+    }
+
+
+    @keyframes backgroundPan {
+	    0% { background-position: 0% 50%; }
+	    50% { background-position: 100% 50%; }
+	    100% { background-position: 0% 50%; }
+    }
+
+    @keyframes pan-particles {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(-50%, -50%); }
+    }
+    
+    @keyframes subtleGlow {
+      0%, 100% { text-shadow: 0 0 8px rgba(255, 217, 125, 0.4), 0 0 16px rgba(255, 217, 125, 0.2); }
+      50% { text-shadow: 0 0 16px rgba(255, 217, 125, 0.6), 0 0 32px rgba(255, 217, 125, 0.3); }
+    }
+    
+    /* Legendary Image Reveal Animation */
+    @keyframes legendary-reveal {
+      from {
+        opacity: 0;
+        transform: scale(0.92);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .legendary-image-reveal {
+      opacity: 0;
+      visibility: hidden;
+      transform: scale(0.92);
+    }
+    .in-viewport .legendary-image-reveal, .in-viewport.legendary-image-reveal {
+      animation: legendary-reveal 1.2s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+      visibility: visible;
+    }
+
+    /* Cinematic Scene Lifecycle Animation */
+    @keyframes scene-lifecycle-anim {
+      /* State: pre-enter */
+      0% {
+        opacity: 0;
+        transform: translateY(80px) scale(0.96);
+      }
+      /* State: active */
+      30%, 70% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+      /* State: exiting (fade_out + slight_shrink) */
+      100% {
+        opacity: 0;
+        transform: scale(0.98);
+      }
+    }
+
+    .cinematic-scene {
+      opacity: 0;
+      visibility: hidden;
+    }
+    .in-viewport.cinematic-scene {
+      visibility: visible;
+      /* Assigns the animation and links it to the viewport scroll timeline */
+      animation: scene-lifecycle-anim linear forwards;
+      animation-timeline: view();
+      /* The animation plays out as the element enters, covers, and exits the viewport */
+      animation-range: entry 15% exit 85%;
+    }
+
+
+    /* Component-specific Animation Classes */
+    .title-glow {
+      animation: subtleGlow 5s ease-in-out infinite;
+    }
+    
+    .btn-cta-glow {
+      transition: all 0.3s ease-in-out;
+    }
+    .btn-cta-glow:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px rgba(225, 141, 92, 0.6), 0 0 30px rgba(255, 217, 125, 0.4);
+    }
+    
+    .card-border-glow {
+      position: relative;
+      transition: all 0.3s ease-in-out;
+    }
+    .card-border-glow:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+    }
+    .card-border-glow::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border-radius: inherit; 
+      border: 1px solid transparent;
+      transition: border-color 0.3s ease-in-out;
+      pointer-events: none;
+    }
+    .card-border-glow:hover::before {
+      border-color: rgba(225, 141, 92, 0.5);
+    }
+
+    /* Scrolled Header */
+    header.scrolled {
+      background-color: rgba(10, 14, 26, 0.85);
+      backdrop-filter: blur(12px);
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+
+    /* Section Divider */
+    .section-divider {
+        height: 100px;
+        position: relative;
+        overflow: hidden;
+    }
+    .section-divider::after {
+        content: '';
+        position: absolute;
+        bottom: 50%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 1px;
+        height: 100px;
+        background: linear-gradient(to top, transparent, rgba(200, 155, 60, 0.5), transparent);
+        animation: divider-glow 5s ease-in-out infinite;
+    }
+    @keyframes divider-glow {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; box-shadow: 0 0 10px rgba(255, 217, 125, 0.5); }
+    }
+
+  </style>
+<script type="importmap">
+{
+  "imports": {
+    "rxjs": "https://esm.sh/rxjs@^7.8.2?conditions=es2015",
+    "rxjs/operators": "https://esm.sh/rxjs@^7.8.2/operators?conditions=es2015",
+    "rxjs/ajax": "https://esm.sh/rxjs@^7.8.2/ajax?conditions=es2015",
+    "rxjs/webSocket": "https://esm.sh/rxjs@^7.8.2/webSocket?conditions=es2015",
+    "rxjs/testing": "https://esm.sh/rxjs@^7.8.2/testing?conditions=es2015",
+    "rxjs/fetch": "https://esm.sh/rxjs@^7.8.2/fetch?conditions=es2015",
+    "@google/genai": "https://esm.sh/@google/genai",
+    "@angular/compiler": "https://esm.sh/@angular/compiler@^21.1.2?external=rxjs",
+    "@angular/platform-browser": "https://esm.sh/@angular/platform-browser@^21.1.2?external=rxjs",
+    "@angular/router": "https://esm.sh/@angular/router@^21.1.2?external=rxjs",
+    "@angular/core": "https://esm.sh/@angular/core@^21.1.2?external=rxjs",
+    "@angular/platform-browser/animations": "https://esm.sh/@angular/platform-browser@^21.1.2/animations?external=rxjs",
+    "@angular/animations": "https://esm.sh/@angular/animations@^21.1.2?external=rxjs",
+    "@angular/common": "https://esm.sh/@angular/common@^21.1.2?external=rxjs"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-gray-900 text-gray-200">
+  <app-root></app-root>
+</body>
+</html>

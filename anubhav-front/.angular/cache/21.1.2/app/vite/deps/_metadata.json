@@ -1,0 +1,70 @@
+{
+  "hash": "6ccd6307",
+  "configHash": "f3925bc4",
+  "lockfileHash": "a865b885",
+  "browserHash": "f76c5e7c",
+  "optimized": {
+    "@angular/animations": {
+      "src": "../../../../../../node_modules/@angular/animations/fesm2022/animations.mjs",
+      "file": "@angular_animations.js",
+      "fileHash": "3ac6fa6b",
+      "needsInterop": false
+    },
+    "@angular/common": {
+      "src": "../../../../../../node_modules/@angular/common/fesm2022/common.mjs",
+      "file": "@angular_common.js",
+      "fileHash": "35d4e9ef",
+      "needsInterop": false
+    },
+    "@angular/core": {
+      "src": "../../../../../../node_modules/@angular/core/fesm2022/core.mjs",
+      "file": "@angular_core.js",
+      "fileHash": "d08487a4",
+      "needsInterop": false
+    },
+    "@angular/platform-browser": {
+      "src": "../../../../../../node_modules/@angular/platform-browser/fesm2022/platform-browser.mjs",
+      "file": "@angular_platform-browser.js",
+      "fileHash": "6def9340",
+      "needsInterop": false
+    },
+    "@angular/platform-browser/animations": {
+      "src": "../../../../../../node_modules/@angular/platform-browser/fesm2022/animations.mjs",
+      "file": "@angular_platform-browser_animations.js",
+      "fileHash": "e14ecb4f",
+      "needsInterop": false
+    },
+    "@angular/router": {
+      "src": "../../../../../../node_modules/@angular/router/fesm2022/router.mjs",
+      "file": "@angular_router.js",
+      "fileHash": "d0d562be",
+      "needsInterop": false
+    },
+    "@google/genai": {
+      "src": "../../../../../../node_modules/@google/genai/dist/web/index.mjs",
+      "file": "@google_genai.js",
+      "fileHash": "784199cf",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-QGTIBS6S": {
+      "file": "chunk-QGTIBS6S.js"
+    },
+    "chunk-ONQMKHCI": {
+      "file": "chunk-ONQMKHCI.js"
+    },
+    "chunk-WVTEPV23": {
+      "file": "chunk-WVTEPV23.js"
+    },
+    "chunk-3FOVRDQ7": {
+      "file": "chunk-3FOVRDQ7.js"
+    },
+    "chunk-3LEOQG63": {
+      "file": "chunk-3LEOQG63.js"
+    },
+    "chunk-GOMI4DH3": {
+      "file": "chunk-GOMI4DH3.js"
+    }
+  }
+}

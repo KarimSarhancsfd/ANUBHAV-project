@@ -1,0 +1,47 @@
+<section class="classes-section-bg py-20 px-4 sm:px-6 lg:px-8">
+  <div class="container mx-auto">
+    <header class="text-center mb-16 max-w-3xl mx-auto">
+      <h2 class="text-4xl md:text-5xl font-extrabold font-cinzel text-white">{{ translationService.translate('classes.title') }}</h2>
+      <p class="text-lg text-gray-400 mt-4">{{ translationService.translate('classes.subtitle') }}</p>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
+      <!-- Main Display Area (Desktop) -->
+      @if (selectedClass(); as sc) {
+        <div class="md:col-span-2 lg:col-span-3 class-details-container">
+          <!-- Character Portrait -->
+          <div class="character-portrait">
+            <img [src]="sc.portraitImage" [alt]="translationService.translate(sc.nameKey)" class="character-image">
+          </div>
+
+          <!-- Character Info -->
+          <div class="character-info" [@staggeredAnimation]="animationKey()">
+            <h3 class="text-5xl lg:text-7xl font-bold font-cinzel text-[#FFD97D] title-glow">{{ translationService.translate(sc.nameKey) }}</h3>
+            <p class="text-gray-300 mt-4 max-w-xl text-lg">
+              {{ translationService.translate(sc.descKey) }}
+            </p>
+            <div class="flex gap-4 mt-6">
+              <span class="role-tag bg-blue-500/30 text-blue-200">{{ translationService.translate('classes.pve') }}: {{ sc.pveRole }}</span>
+              <span class="role-tag bg-red-500/30 text-red-200">{{ translationService.translate('classes.pvp') }}: {{ sc.pvpRole }}</span>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Selection List -->
+      <div class="md:col-span-1 lg:col-span-1">
+        <div class="class-selection-list">
+          @for(class of classes; track class.id; let i = $index) {
+            <button (click)="selectClass(class)" 
+                    class="class-selector-item group"
+                    [class.active]="class.id === selectedClass()?.id">
+              <img [src]="class.image" [alt]="translationService.translate(class.nameKey)" class="selector-bg">
+              <div class="selector-overlay"></div>
+              <span class="selector-name">{{ translationService.translate(class.nameKey) }}</span>
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

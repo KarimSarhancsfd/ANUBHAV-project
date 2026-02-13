@@ -1,0 +1,47 @@
+<section class="py-20 px-4 sm:px-6 lg:px-8 bg-gray-900/50">
+  <div class="container mx-auto">
+    <header class="text-center mb-16 max-w-3xl mx-auto">
+      <h2 class="text-4xl md:text-5xl font-extrabold font-cinzel text-white">{{ translationService.translate('mounts.title') }}</h2>
+      <p class="text-lg text-gray-400 mt-4">{{ translationService.translate('mounts.subtitle') }}</p>
+    </header>
+
+    <div class="relative group">
+      <div #carousel (scroll)="onScrollDebounced()" class="mounts-carousel">
+        @for(mount of mounts; track mount.nameKey; let i = $index) {
+          <div class="mount-card-container">
+            <div class="mount-card legendary-image-reveal"
+                 [class.active]="currentIndex() === i"
+                 (mousemove)="onMouseMove($event)"
+                 (mouseleave)="onMouseLeave($event)"
+                 [style.animation-delay]="i * 100 + 'ms'">
+              <img [src]="mount.image" [alt]="translationService.translate(mount.nameKey)" class="mount-card-img">
+              <div class="mount-card-overlay"></div>
+              <h3 class="mount-card-name">{{ translationService.translate(mount.nameKey) }}</h3>
+            </div>
+          </div>
+        }
+      </div>
+       <!-- Navigation Buttons -->
+      <button (click)="previous()" [disabled]="isAtStart()" class="carousel-btn left-0 md:left-4">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+        </svg>
+      </button>
+      <button (click)="next()" [disabled]="isAtEnd()" class="carousel-btn right-0 md:right-4">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+        </svg>
+      </button>
+    </div>
+
+     <!-- Pagination Dots -->
+    <div class="carousel-dots">
+      @for(mount of mounts; track mount.nameKey; let i = $index) {
+        <button (click)="goToMount(i)"
+                class="carousel-dot"
+                [class.active]="currentIndex() === i">
+        </button>
+      }
+    </div>
+  </div>
+</section>

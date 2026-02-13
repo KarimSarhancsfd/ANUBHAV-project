@@ -1,0 +1,47 @@
+<div class="py-16 px-4 sm:px-6 lg:px-8 fade-in">
+  <div class="container mx-auto">
+    <header class="text-center mb-16">
+      <h1 class="text-4xl md:text-5xl font-extrabold font-cinzel text-[#FFD97D]">{{ translationService.translate('download.title') }}</h1>
+      <p class="text-lg text-gray-400 mt-2">{{ translationService.translate('download.subtitle') }}</p>
+    </header>
+
+    <div class="max-w-3xl mx-auto bg-gray-800/50 rounded-lg p-8 md:p-12 slide-up">
+      <div class="text-center">
+        <h2 class="text-3xl font-bold text-white mb-6">{{ translationService.translate('download.clientTitle') }}</h2>
+        <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+          <a href="#" (click)="$event.preventDefault(); startDownload()" class="inline-block bg-[#E18D5C] text-white font-bold py-4 px-10 rounded-md text-xl hover:bg-[#d47845] btn-cta-glow">
+            {{ translationService.translate('download.downloadBtn') }}
+          </a>
+          
+          <button (click)="simulateLaunch()" 
+                  [disabled]="launchState() !== 'idle'"
+                  class="inline-block border-2 border-[#FFD97D] text-[#FFD97D] font-bold py-4 px-10 rounded-md text-xl hover:bg-[#FFD97D]/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+            {{ translationService.translate('launcher.btn.launch') }}
+          </button>
+        </div>
+        
+        <div class="mt-6 min-h-[1.5rem]">
+          @if (launchState() !== 'idle') {
+            <div class="flex items-center justify-center gap-2 text-[#FFD97D] animate-pulse">
+              <span class="w-2 h-2 bg-[#FFD97D] rounded-full"></span>
+              {{ translationService.translate('launcher.status.' + launchState()) }}
+            </div>
+          }
+        </div>
+        <p class="text-gray-500 mt-4 text-sm">Version 1.2.5 | 85.6 GB</p>
+      </div>
+
+      <div class="mt-12 pt-8 border-t border-gray-700">
+        <h3 class="text-xl font-semibold text-white mb-4 text-center">{{ translationService.translate('download.requirementsTitle') }}</h3>
+        <ul class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-gray-300">
+          <li><strong class="text-gray-200">OS:</strong> Windows 10 64-bit</li>
+          <li><strong class="text-gray-200">Processor:</strong> Intel Core i5-4460 or AMD FX-8350</li>
+          <li><strong class="text-gray-200">Memory:</strong> 8 GB RAM</li>
+          <li><strong class="text-gray-200">Graphics:</strong> NVIDIA GeForce GTX 960 or AMD Radeon R9 280</li>
+          <li><strong class="text-gray-200">DirectX:</strong> Version 11</li>
+          <li><strong class="text-gray-200">Storage:</strong> 100 GB available space</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

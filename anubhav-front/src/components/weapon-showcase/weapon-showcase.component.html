@@ -1,0 +1,83 @@
+<div class="weapon-showcase-bg">
+  <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-20 overflow-hidden">
+    <div class="relative min-h-[500px] md:min-h-[550px]">
+      @if (selectedWeapon(); as weapon) {
+        <div class="grid md:grid-cols-2 gap-8 items-center">
+          <!-- Left Side: Text Content -->
+          <div class="text-white z-10 text-center md:text-start">
+            <h2 class="text-4xl md:text-5xl font-extrabold font-cinzel text-gray-400 uppercase tracking-widest fade-in-slow">
+              {{ translationService.translate('weapon.title') }}
+            </h2>
+            <h3 class="mt-2 text-5xl md:text-7xl font-bold font-cinzel text-[#FFD97D] uppercase weapon-name-anim">
+              {{ translationService.translate(weapon.nameKey) }}
+            </h3>
+            <div class="w-24 h-px bg-gradient-to-r rtl:bg-gradient-to-l from-[#FFD97D] to-transparent my-6 mx-auto md:ms-0 md:me-auto"></div>
+            <p class="text-lg text-gray-300 max-w-md mx-auto md:ms-0 md:me-auto weapon-desc-anim">
+              {{ translationService.translate(weapon.descriptionKey) }}
+            </p>
+          </div>
+
+          <!-- Right Side: Image -->
+          <div class="relative flex justify-center items-center">
+            <div class="absolute inset-0 bg-white/5 rounded-full blur-3xl"></div>
+            <img [src]="weapon.image" [alt]="translationService.translate(weapon.nameKey)"
+                 class="max-w-full h-auto object-contain z-10 weapon-image-anim" loading="lazy">
+          </div>
+        </div>
+      } @else {
+        <div class="absolute inset-0 flex items-center justify-center text-center">
+          <div class="text-gray-400 fade-in-slow">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-16 h-16 mx-auto mb-4 opacity-30" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+            </svg>
+            <h3 class="text-3xl font-cinzel font-bold">
+              {{ translationService.translate('weapon.selectPrompt') }}
+            </h3>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Bottom Selection Bar -->
+  <div class="weapon-selector-bar">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
+      <div class="flex flex-col rtl:flex-row-reverse md:rtl:flex-col-reverse">
+        <button (click)="selectCategory('melee')" 
+                class="font-cinzel text-xl font-bold uppercase tracking-widest px-6 py-2 transition-colors duration-300 slide-up"
+                [style.animation-delay]="'0ms'"
+                [class.text-[#FFD97D]]="activeCategory() === 'melee'"
+                [class.text-white/70]="activeCategory() !== 'melee'">
+                {{ translationService.translate('weapon.melee') }}
+        </button>
+        <button (click)="selectCategory('ranged')" 
+                class="font-cinzel text-xl font-bold uppercase tracking-widest px-6 py-2 transition-colors duration-300 slide-up"
+                [style.animation-delay]="'50ms'"
+                [class.text-[#FFD97D]]="activeCategory() === 'ranged'"
+                [class.text-white/70]="activeCategory() !== 'ranged'">
+                {{ translationService.translate('weapon.ranged') }}
+        </button>
+      </div>
+      <div class="w-px h-16 bg-[#FFD97D]/20 mx-4"></div>
+      <div class="flex-1 overflow-x-auto snap-x snap-mandatory hide-scrollbar">
+        <div class="flex items-center space-x-2 md:space-x-4">
+          <!-- Spacer for centering first item on mobile -->
+          <div class="w-[calc(50%-2.25rem)] md:w-0 flex-shrink-0"></div>
+          @for(weapon of filteredWeapons(); track weapon.id; let i = $index) {
+            <button (click)="selectWeapon(weapon.id)"
+                    class="weapon-icon group flex-shrink-0 snap-center slide-up"
+                    [style.animation-delay]="(i + 2) * 50 + 'ms'"
+                    [class.active]="weapon.id === selectedWeaponId()">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
+                   class="w-10 h-10 transition-all duration-300" 
+                   [innerHTML]="weapon.icon | safeHtml">
+              </svg>
+            </button>
+          }
+          <!-- Spacer for centering last item on mobile -->
+          <div class="w-[calc(50%-2.25rem)] md:w-0 flex-shrink-0"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

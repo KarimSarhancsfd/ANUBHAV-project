@@ -1,0 +1,57 @@
+.mode-card {
+  position: relative;
+  min-height: 500px;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  padding: 2.5rem;
+  text-decoration: none;
+  transition: all 0.4s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mode-card-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.mode-card:hover .mode-card-bg {
+  transform: scale(1.05);
+}
+
+.pve-bg {
+  background-image: url('https://picsum.photos/seed/xaepve/800/600');
+}
+.pvp-bg {
+  background-image: url('https://picsum.photos/seed/xaepvp/800/600');
+}
+
+.mode-card-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(10, 14, 26, 0.9) 20%, transparent 60%);
+}
+
+.mode-card-content {
+  position: relative;
+  z-index: 2;
+  transition: transform 0.4s ease-out;
+}
+
+.mode-card:hover .mode-card-content {
+  transform: translateY(-10px);
+}
+
+.pve-card:hover {
+  box-shadow: 0 0 30px rgba(96, 165, 250, 0.4); /* blue-400 */
+  border-color: rgba(96, 165, 250, 0.6);
+}
+
+.pvp-card:hover {
+  box-shadow: 0 0 30px rgba(239, 68, 68, 0.4); /* red-500 */
+  border-color: rgba(239, 68, 68, 0.6);
+}

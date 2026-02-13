@@ -1,0 +1,140 @@
+:host {
+  display: block;
+}
+
+.cinematic-container {
+  /* This container's height determines how long the sticky effect lasts */
+  height: 300vh;
+  position: relative;
+  background-color: #0c0211; /* Deep purple-black */
+}
+
+.cinematic-sticky-parent {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.scroll-driven-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* Text Animation linked to scroll */
+.text-content-anim {
+  animation: text-fade-parallax linear forwards;
+  animation-timeline: view();
+  animation-range: entry 30% exit 80%;
+}
+
+@keyframes text-fade-parallax {
+  from {
+    opacity: 0;
+    transform: translateY(100px);
+  }
+  30%, 70% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+}
+
+.title-glow {
+  text-shadow: 0 0 10px rgba(192, 132, 252, 0.6), 0 0 20px rgba(167, 139, 250, 0.4);
+}
+
+/* -- Atmospheric Effects -- */
+.purple-mist {
+    position: absolute;
+    top: -50%;
+    inset-inline-start: -50%;
+    width: 200%;
+    height: 200%;
+    background: 
+      radial-gradient(circle at 50% 50%, rgba(107, 33, 168, 0.25) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: 5;
+    animation: mist-swirl 20s ease-in-out infinite alternate;
+}
+
+@keyframes mist-swirl {
+  from { transform: rotate(-10deg) scale(1.2); }
+  to   { transform: rotate(10deg) scale(1.3); }
+}
+
+.particles-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.particles-overlay::before {
+    content: '';
+    position: absolute;
+    width: 2px;
+    height: 2px;
+    background: #e9d5ff; /* purple-200 */
+    border-radius: 50%;
+    top: 100%;
+    inset-inline-start: 25%;
+    opacity: 0;
+    box-shadow: 
+        -20vw -20vh 0 0px rgba(233, 213, 255, 0.7), 25vw -40vh 1px 0px rgba(233, 213, 255, 0.5), 
+        50vw -60vh 0 1px rgba(233, 213, 255, 0.8), 10vw -10vh 0 0px rgba(233, 213, 255, 0.6), 
+        70vw -80vh 1px 0px rgba(233, 213, 255, 0.4), 30vw -30vh 0 0px rgba(233, 213, 255, 0.9);
+    animation: float-particles-purple 25s linear infinite;
+}
+
+@keyframes float-particles-purple {
+  from { transform: translateY(0); opacity: 0; }
+  25%, 75% { opacity: 1; }
+  to { transform: translateY(-110vh); opacity: 0; }
+}
+
+/* -- Text Layer Styles -- */
+.cinematic-text-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2; /* Layer 2 as requested */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none; /* Let clicks pass through to canvas if needed, mostly just for visuals */
+}
+
+.cinematic-content {
+  pointer-events: auto;
+}
+
+/* Typography Enhancements */
+.title-glow {
+  text-shadow: 0 0 20px rgba(139, 92, 246, 0.5), 0 0 40px rgba(109, 40, 217, 0.3);
+}
+
+.font-cinzel {
+  font-family: 'Cinzel', serif;
+}
+
+.font-outfit {
+  font-family: 'Outfit', sans-serif;
+}
+
+/* Legendary Dark Atmosphere */
+.cinematic-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, transparent 30%, rgba(5, 3, 10, 0.6) 80%, rgba(0,0,0,0.95) 100%);
+  z-index: 3;
+  pointer-events: none;
+}

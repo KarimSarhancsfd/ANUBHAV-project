@@ -1,0 +1,52 @@
+<section class="cinematic-media-section">
+  <div class="sand-overlay"></div>
+  <div class="vignette"></div>
+
+  <div class="container">
+    <header class="media-header">
+      <div class="ornament-divider">
+        <span class="diamond-accent"></span>
+        <span class="line"></span>
+        <span class="diamond-accent"></span>
+      </div>
+      <h2 class="section-title">Legends of the Sands</h2>
+      <p class="section-subtitle">Witness the glory of the eternal empire</p>
+      <div class="ornament-divider">
+        <span class="diamond-accent"></span>
+        <span class="line"></span>
+        <span class="diamond-accent"></span>
+      </div>
+    </header>
+
+    <div class="media-grid">
+      @for (item of mediaItems(); track item.id) {
+        <div 
+          class="media-card" 
+          [class.active]="hoveredId() === item.id"
+          (mouseenter)="onHover(item.id)"
+          (mouseleave)="onHover(null)"
+        >
+          <div class="card-border-frame"></div>
+          <div class="media-content">
+            @if (item.type === 'image') {
+              <img [src]="item.src" [alt]="item.title" class="media-asset">
+            } @else {
+              <!-- Fallback to poster for video type if simplified -->
+              <img [src]="item.poster" [alt]="item.title" class="media-asset">
+              <div class="play-icon-overlay">
+                <svg viewBox="0 0 24 24" fill="currentColor" class="play-icon">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </div>
+            }
+            <div class="media-info">
+              <h3 class="media-title">{{ item.title }}</h3>
+              <p class="media-desc">{{ item.description }}</p>
+            </div>
+          </div>
+          <div class="card-glow"></div>
+        </div>
+      }
+    </div>
+  </div>
+</section>

@@ -1,0 +1,12 @@
+
+@if (showLoader()) {
+  <app-loading-screen [class.fade-out-lift]="isFadingOut()"></app-loading-screen>
+}
+
+<div class="flex flex-col min-h-screen bg-gray-900">
+  <app-header></app-header>
+  <main class="flex-grow pt-32">
+    <router-outlet></router-outlet>
+  </main>
+  <app-footer></app-footer>
+</div>

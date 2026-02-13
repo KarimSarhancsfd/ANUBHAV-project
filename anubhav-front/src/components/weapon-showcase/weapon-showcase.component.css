@@ -1,0 +1,133 @@
+
+.weapon-showcase-bg {
+    background-color: #0E0E0E; /* dark_contrast_base */
+    background-image: 
+        radial-gradient(circle at 15% 50%, rgba(255, 217, 125, 0.1), transparent 35%),
+        radial-gradient(circle at 85% 30%, rgba(230, 211, 163, 0.1), transparent 40%);
+    border-top: 1px solid #C89B3C50; /* gold_accent with opacity */
+    border-bottom: 1px solid #C89B3C50;
+    position: relative;
+    overflow: hidden;
+}
+
+.weapon-showcase-bg::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 200%;
+    height: 200%;
+    background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMCIgaGVpZ2h0PSIzMCI+PHJlY3Qgd2lkdGg9IjMwIiBoZWlnaHQ9IjMwIiBmaWxsPSJ0cmFuc3BhcmVudCIvPjxjaXJjbGUgY3g9IjUiIGN5PSI1IiByPSIxIiBmaWxsPSJyZ2JhKDIwMCwxNTUsNjAsMC4xKSIvPjxjaXJjbGUgY3g9IjI1IiBjeT0iMjUiIHI9IjEiIGZpbGw9InJnYmEoMjAwLDE1NSw2MCwwLjEpIi8+PGNpcmNsZSBjeD0iMTUiIGN5PSIxMCIgcj0iMSIgZmlsbD0icmdiYSgyMDAsMTU1LDYwLDAuMSkiLz48Y2lyY2xlIGN4PSIxMCIgY3k9IjIwIiByPSIxIiBmaWxsPSJyZ2JhKDIwMCwxNTUsNjAsMC4xKSIvPjwvc3ZnPg==');
+    animation: pan-particles 60s linear infinite;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+@keyframes pan-particles {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(-50%, -50%); }
+}
+
+.weapon-selector-bar {
+    height: 120px;
+    background-color: #1a160f; /* Dark sandy brown */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cg fill='%23BFA76A' fill-opacity='0.05'%3E%3Crect x='50' width='50' height='50'/%3E%3Crect y='50' width='50' height='50'/%3E%3C/g%3E%3C/svg%3E");
+    border-top: 2px solid #C89B3C; /* gold_accent */
+    position: relative;
+}
+
+.weapon-selector-bar::before {
+    content: none;
+}
+
+.weapon-icon {
+    position: relative;
+    padding: 1rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.weapon-icon:hover {
+    color: #FFD97D;
+}
+
+.weapon-icon.active {
+    color: #FFD97D;
+    transform: scale(1.1);
+}
+
+.weapon-icon::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    transition: all 0.3s ease-in-out;
+}
+
+.weapon-icon.active::before {
+    border-color: #FFD97D;
+    background-color: rgba(255, 217, 125, 0.1);
+    transform: scale(1.2);
+}
+
+/* Keyframe animations */
+@keyframes weapon-name-in {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes weapon-desc-in {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes weapon-image-in {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+@keyframes fade-in-slow-kf {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.weapon-name-anim {
+    animation: weapon-name-in 0.5s ease-out 0.1s both;
+}
+.weapon-desc-anim {
+    animation: weapon-desc-in 0.5s ease-out 0.2s both;
+}
+.weapon-image-anim {
+    animation: weapon-image-in 0.6s ease-out both;
+}
+.fade-in-slow {
+    animation: fade-in-slow-kf 1s ease-in-out both;
+}
+
+/* Scrollbar Hiding Utility */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Safari and Chrome */
+}
+
+/* Responsive adjustments */
+@media (max-width: 767px) {
+    .weapon-selector-bar {
+        height: auto;
+        padding: 1rem 0;
+    }
+    .weapon-selector-bar .container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .weapon-selector-bar .flex-col {
+        flex-direction: row;
+        justify-content: center;
+        gap: 1rem;
+    }
+    .weapon-selector-bar .w-px {
+        width: 100%;
+        height: 1px;
+        margin-block: 1rem;
+    }
+}

@@ -1,0 +1,94 @@
+<section class="relative h-screen w-full text-white overflow-hidden hero-section-container">
+  <!-- Layer 1: Background Image -->
+  <div class="absolute inset-0 z-0 video-background">
+    <div class="video-background-image" [style.transform]="backgroundParallaxTransform()"></div>
+  </div>
+
+  <!-- Particle Effect Layer -->
+  <div class="hero-particles z-[1]"></div>
+
+  <!-- Layer 2: Atmospheric Overlays -->
+  <div class="absolute inset-0 z-[2] hero-vignette"></div>
+  <div class="absolute inset-0 z-[4] hero-overlay"></div>
+  
+  <!-- Layer 3: Foreground Character -->
+  <div class="absolute inset-0 z-[3] flex items-center justify-center hero-character-container" [style.transform]="foregroundParallaxTransform()">
+    <img src="https://picsum.photos/seed/xaemech/800/1200" alt="Heroic Mech Character" class="hero-character-image">
+  </div>
+
+  <!-- Layer 4: UI Content -->
+  <div class="relative z-10 h-full flex flex-col items-center justify-end text-center p-6 md:p-12 hero-content-container">
+    <div class="w-full max-w-7xl flex flex-col items-center md:items-start hero-cta-zone">
+      <h1 class="hero-title">XAE</h1>
+      <p class="hero-tagline">{{ translationService.translate('hero.tagline') }}</p>
+      
+      <a routerLink="/download" class="fantasy-cta-button" [aria-label]="translationService.translate('nav.download')">
+        <svg class="w-12 h-12 text-[#FFD97D]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-3.75-3.75M12 15l3.75-3.75M12 21a9 9 0 110-18 9 9 0 010 18z" />
+        </svg>
+      </a>
+
+      <div class="platform-icons">
+        @for(platform of platformIcons; track platform.name) {
+          <div class="platform-icon-wrapper" [title]="platform.name">
+            <svg class="platform-icon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+              <path [attr.d]="platform.svgPath"></path>
+            </svg>
+          </div>
+        }
+      </div>
+
+      <div class="season-banner">
+        <span class="chevron left"></span>
+        <h2 class="text-xl md:text-2xl font-bold font-cinzel tracking-widest text-shadow">
+          Season 3 Starts on January 30
+        </h2>
+        <span class="chevron right"></span>
+      </div>
+    </div>
+  </div>
+
+   <!-- Scroll Down Indicator (Layer 4) -->
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
+    <div class="scroll-indicator">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </div>
+</section>
+
+
+
+<app-cinematic-intro></app-cinematic-intro>
+  
+<!-- Sections below the fold -->
+<section class="cinematic-scene" appRevealOnScroll>
+  <app-classes-system></app-classes-system>
+</section>
+
+
+
+<section class="cinematic-scene" appRevealOnScroll>
+  <app-combat-experience></app-combat-experience>
+</section>
+
+<app-open-world></app-open-world>
+
+<section class="cinematic-scene" appRevealOnScroll>
+  <app-mounts-vehicles></app-mounts-vehicles>
+</section>
+
+<section class="cinematic-scene" appRevealOnScroll>
+  <app-pvp-pve></app-pvp-pve>
+</section>
+
+<section class="cinematic-scene" appRevealOnScroll>
+  <app-character-showcase></app-character-showcase>
+</section>
+
+<section class="cinematic-scene" appRevealOnScroll>
+  <app-cinematic-media></app-cinematic-media>
+</section>
+
+<app-legend-status></app-legend-status>

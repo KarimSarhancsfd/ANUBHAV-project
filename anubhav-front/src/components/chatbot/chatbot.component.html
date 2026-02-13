@@ -1,0 +1,76 @@
+<div class="fixed bottom-24 right-8 w-full max-w-md z-50 fade-in">
+  <div class="flex flex-col h-[60vh] bg-gray-900/80 backdrop-blur-md rounded-lg border border-gray-700">
+    <!-- Header -->
+    <header class="flex items-center justify-between p-4 border-b border-gray-700">
+      <h2 class="font-cinzel text-xl font-bold text-[#FFD97D]">XAE Support</h2>
+      <button (click)="close.emit()" class="text-gray-400 hover:text-white transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </header>
+
+    <!-- Messages -->
+    <div #chatContainer class="flex-1 p-4 space-y-6 overflow-y-auto">
+      @for (message of chatHistory(); track $index) {
+        <div class="flex items-start gap-3" [class.flex-row-reverse]="message.role === 'user'">
+          @if (message.role === 'model') {
+            <div class="flex-shrink-0 w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#FFD97D]" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 3.5a1.5 1.5 0 013 0V4a1 1 0 001 1h.5a1.5 1.5 0 011.5 1.5v1.5a1.5 1.5 0 01-1.5 1.5h-.5a1 1 0 00-1 1v.5a1.5 1.5 0 01-3 0V11a1 1 0 00-1-1h-.5a1.5 1.5 0 01-1.5-1.5V7A1.5 1.5 0 015.5 5.5h.5a1 1 0 001-1v-.5z" />
+                <path d="M10 12.5a1.5 1.5 0 01-3 0V12a1 1 0 00-1-1h-.5a1.5 1.5 0 01-1.5-1.5V8a1.5 1.5 0 011.5-1.5h.5a1 1 0 001-1v-.5a1.5 1.5 0 013 0V6a1 1 0 001 1h.5a1.5 1.5 0 011.5 1.5v1.5a1.5 1.5 0 01-1.5 1.5h-.5a1 1 0 00-1 1v.5z" />
+              </svg>
+            </div>
+          }
+          <div class="max-w-xs md:max-w-sm">
+            <div class="px-4 py-2 rounded-lg"
+                 [class.bg-blue-800/50]="message.role === 'user'"
+                 [class.rounded-bl-none]="message.role === 'model'"
+                 [class.rounded-br-none]="message.role === 'user'"
+                 [class.bg-gray-700/50]="message.role === 'model'">
+              <p class="text-white whitespace-pre-wrap">{{ message.text }}</p>
+            </div>
+            <p class="text-xs text-gray-500 mt-1" [class.text-right]="message.role === 'user'">{{ message.timestamp }}</p>
+          </div>
+        </div>
+      }
+      @if (isLoading()) {
+        <div class="flex items-start gap-3">
+          <div class="flex-shrink-0 w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
+             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-[#FFD97D]" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 3.5a1.5 1.5 0 013 0V4a1 1 0 001 1h.5a1.5 1.5 0 011.5 1.5v1.5a1.5 1.5 0 01-1.5 1.5h-.5a1 1 0 00-1 1v.5a1.5 1.5 0 01-3 0V11a1 1 0 00-1-1h-.5a1.5 1.5 0 01-1.5-1.5V7A1.5 1.5 0 015.5 5.5h.5a1 1 0 001-1v-.5z" />
+                <path d="M10 12.5a1.5 1.5 0 01-3 0V12a1 1 0 00-1-1h-.5a1.5 1.5 0 01-1.5-1.5V8a1.5 1.5 0 011.5-1.5h.5a1 1 0 001-1v-.5a1.5 1.5 0 013 0V6a1 1 0 001 1h.5a1.5 1.5 0 011.5 1.5v1.5a1.5 1.5 0 01-1.5 1.5h-.5a1 1 0 00-1 1v.5z" />
+              </svg>
+          </div>
+          <div class="bg-gray-700/50 px-4 py-3 rounded-lg rounded-bl-none">
+            <div class="flex items-center space-x-2">
+              <span class="w-2 h-2 bg-gray-400 rounded-full animate-pulse [animation-delay:-0.3s]"></span>
+              <span class="w-2 h-2 bg-gray-400 rounded-full animate-pulse [animation-delay:-0.15s]"></span>
+              <span class="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Input -->
+    <footer class="p-4 border-t border-gray-700">
+      <form (ngSubmit)="sendMessage()" class="flex items-center space-x-2">
+        <input type="text"
+               [value]="userInput()"
+               (input)="userInput.set($any($event.target).value)"
+               placeholder="Ask a question..."
+               class="flex-1 bg-gray-800 border border-gray-600 rounded-md py-2 px-3 text-white focus:outline-none focus:ring-2 focus:ring-[#E18D5C]"
+               [disabled]="isLoading()"
+               autocomplete="off">
+        <button type="submit"
+                class="bg-[#E18D5C] text-white rounded-md p-2 hover:bg-[#d47845] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                [disabled]="isLoading() || userInput().trim() === ''">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.428A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+          </svg>
+        </button>
+      </form>
+    </footer>
+  </div>
+</div>
