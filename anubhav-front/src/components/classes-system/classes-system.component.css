@@ -1,0 +1,178 @@
+/* UX Goal: Create a cinematic, atmospheric background that makes the section feel premium and distinct */
+.classes-section-bg {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--bg-color-1);
+}
+.classes-section-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    radial-gradient(circle at 30% 40%, rgba(200, 155, 60, 0.15) 0%, transparent 40%),
+    radial-gradient(circle at 70% 60%, rgba(100, 120, 180, 0.1) 0%, transparent 35%);
+  animation: background-breathing 12s ease-in-out infinite;
+  z-index: 0;
+}
+
+@keyframes background-breathing {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+.class-details-container {
+  position: relative;
+  min-height: 600px;
+  display: flex;
+  align-items: flex-end;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  color: white;
+}
+
+.character-portrait {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* UX Goal: Make the character feel present and alive, not just a static image */
+.character-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  animation: character-breathing 10s ease-in-out infinite, character-fade-in 1s ease-out forwards;
+}
+
+@keyframes character-breathing {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+
+@keyframes character-fade-in {
+  from { opacity: 0; transform: scale(1.05); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* UX Goal: Ensure text is readable and visually separated from the dynamic background */
+.character-info {
+  position: relative;
+  z-index: 2;
+  padding: 2.5rem;
+  background: linear-gradient(to top, rgba(10, 14, 26, 0.9) 20%, transparent 100%);
+  width: 100%;
+}
+
+.role-tag {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 9999px;
+  text-transform: uppercase;
+}
+
+/* UX Goal: Create a clear, satisfying selection list that's easy to use */
+.class-selection-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.class-selector-item {
+  position: relative;
+  height: 100px;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid rgba(200, 155, 60, 0.3);
+  transition: all 0.3s ease-out;
+  width: 100%;
+  text-align: start;
+}
+
+.class-selector-item:hover {
+  transform: translateX(5px);
+  border-color: rgba(255, 217, 125, 0.7);
+}
+
+:host-context([dir="rtl"]) .class-selector-item:hover {
+    transform: translateX(-5px);
+}
+
+.class-selector-item.active {
+  border-color: #FFD97D;
+  box-shadow: 0 0 20px rgba(255, 217, 125, 0.3);
+}
+
+.selector-bg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 0.4s ease-out;
+}
+
+.class-selector-item:hover .selector-bg {
+  transform: scale(1.1);
+}
+
+.selector-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to right, rgba(10, 14, 26, 0.8) 20%, transparent 100%);
+  z-index: 1;
+}
+
+:host-context([dir="rtl"]) .selector-overlay {
+    background: linear-gradient(to left, rgba(10, 14, 26, 0.8) 20%, transparent 100%);
+}
+
+.selector-name {
+  position: relative;
+  z-index: 2;
+  padding: 1.5rem;
+  font-family: 'Cinzel', serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 1px 5px black;
+}
+
+/* Responsive adjustments for mobile */
+@media (max-width: 767px) {
+  .class-selection-list {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .class-selection-list::-webkit-scrollbar {
+    display: none;
+  }
+  .class-selector-item {
+    width: 150px;
+    height: 200px;
+    flex-shrink: 0;
+  }
+  .selector-overlay {
+    background: linear-gradient(to top, rgba(10, 14, 26, 0.8) 20%, transparent 100%);
+  }
+  .selector-name {
+    position: absolute;
+    bottom: 0;
+    font-size: 1.25rem;
+    padding: 1rem;
+  }
+  .class-selector-item:hover {
+    transform: translateY(-5px) translateX(0);
+  }
+}

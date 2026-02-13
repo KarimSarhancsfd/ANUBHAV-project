@@ -1,0 +1,45 @@
+<section class="showcase-container">
+  @if (selectedCharacter(); as character) {
+    <div class="showcase-main">
+      <!-- Info Panel -->
+      <div class="text-content">
+        <h2 [@textAnimation]="character.id" class="text-6xl md:text-8xl font-bold font-cinzel text-white drop-shadow-lg">
+          {{ translationService.translate(character.nameKey) }}
+        </h2>
+        <p [@textAnimation]="character.id" class="mt-4 max-w-lg text-gray-300 text-lg drop-shadow-md">
+          {{ translationService.translate(character.descKey) }}
+        </p>
+        <div [@textAnimation]="character.id" class="mt-8 flex flex-col sm:flex-row items-center gap-6">
+           <a routerLink="/download" class="inline-block bg-[#E18D5C] text-white font-bold py-3 px-8 rounded-sm hover:bg-[#d47845] btn-cta-glow">
+            {{ translationService.translate('hero.playNow') }}
+          </a>
+          <a href="#" (click)="$event.preventDefault(); learnMore(character)" class="text-gray-300 hover:text-white group inline-flex items-center gap-2">
+            <span>{{ translationService.translate('character.learnMore') }}</span>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </a>
+        </div>
+      </div>
+      <!-- Character Portrait -->
+      <div class="character-portrait-wrapper">
+         <div class="character-bg-glow" [style.background-image]="'url(' + character.mainImage + ')'"></div>
+         <img [@fadeAnimation]="character.id" [src]="character.mainImage" [alt]="translationService.translate(character.nameKey)" class="character-portrait">
+      </div>
+    </div>
+  }
+
+  <!-- Selection Grid -->
+  <div class="selection-grid-container">
+    <div class="selection-grid">
+       @for (char of characters(); track char.id) {
+        <button (click)="selectCharacter(char.id)" 
+                class="thumbnail-btn group" 
+                [class.active]="char.id === selectedCharacterId()">
+          <img [src]="char.thumbnailImage" [alt]="translationService.translate(char.nameKey)" class="thumbnail-img">
+          <div class="thumbnail-border"></div>
+        </button>
+      }
+    </div>
+  </div>
+</section>

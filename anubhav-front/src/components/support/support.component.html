@@ -1,0 +1,98 @@
+<div class="py-16 px-4 sm:px-6 lg:px-8 fade-in">
+  <div class="container mx-auto">
+    <header class="text-center mb-12" appRevealOnScroll>
+      <h1 class="text-4xl md:text-5xl font-extrabold font-cinzel text-[#FFD97D] slide-up">{{ translationService.translate('support.title') }}</h1>
+      <p class="text-lg text-gray-400 mt-2 slide-up" style="animation-delay: 100ms;">{{ translationService.translate('support.subtitle') }}</p>
+    </header>
+
+    <!-- Search Bar -->
+    <div class="max-w-3xl mx-auto mb-16" appRevealOnScroll>
+      <form (ngSubmit)="performSearch()" class="relative slide-up">
+        <input type="search" 
+               [value]="searchQuery()"
+               (input)="searchQuery.set($any($event.target).value)"
+               [placeholder]="translationService.translate('support.searchPlaceholder')" 
+               class="w-full bg-gray-800/50 border border-gray-700 rounded-lg py-4 pl-6 pr-16 text-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#E18D5C]">
+        <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+        </button>
+      </form>
+    </div>
+
+    <!-- Support Categories -->
+    <div appRevealOnScroll>
+      <h2 class="text-3xl font-bold text-white text-center mb-8 slide-up">{{ translationService.translate('support.browseCategory') }}</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto">
+         @for (category of supportCategories; track category.titleKey; let i = $index) {
+          <a href="#" (click)="$event.preventDefault(); browseCategory(category)" class="bg-gray-800/50 p-8 rounded-lg text-center hover:bg-gray-800 transition-all duration-300 slide-up card-border-glow" [style.animation-delay]="i * 100 + 'ms'">
+            <div class="text-[#E18D5C] mx-auto mb-4 w-16 h-16">
+              @if (category.icon === 'shield') {
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.286zm0 13.036h.008v.008h-.008v-.008z" /></svg>
+              } @else if (category.icon === 'card') {
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h6m3-3.75H21.75m-3.75-9.75H21.75c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125H5.25c-.621 0-1.125-.504-1.125-1.125V8.25c0-.621.504-1.125 1.125-1.125h2.25M12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008z" /></svg>
+              } @else if (category.icon === 'wrench') {
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17L17.25 21A2.652 2.652 0 0021 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.73-.664 1.193-.816l-2.496 3.03zM11.42 15.17L5.877 21m6.491-1.341a2.25 2.25 0 01-3.182-3.182l5.484-5.484c.317-.317.723-.538 1.168-.646l-3.484 3.483z" /></svg>
+              } @else if (category.icon === 'game') {
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M14.25 7.756a4.5 4.5 0 100 8.488M7.744 14.25a4.5 4.5 0 108.488 0M1.5 10.5a11.25 11.25 0 1122.5 0 11.25 11.25 0 01-22.5 0z" /></svg>
+              }
+            </div>
+            <h3 class="text-xl font-bold text-white font-cinzel mb-2">{{ translationService.translate(category.titleKey) }}</h3>
+            <p class="text-gray-400 text-sm">{{ translationService.translate(category.descriptionKey) }}</p>
+          </a>
+        }
+      </div>
+    </div>
+
+    <!-- FAQ Section -->
+    <div class="max-w-3xl mx-auto mt-20" appRevealOnScroll>
+      <h2 class="text-3xl font-bold text-white text-center mb-8 slide-up">{{ translationService.translate('support.topQuestions') }}</h2>
+      <div class="space-y-4">
+        @for (faq of faqs; track faq.questionKey; let i = $index) {
+          <div class="bg-gray-800/50 rounded-lg overflow-hidden slide-up card-border-glow" [style.animation-delay]="i * 100 + 'ms'">
+            <button (click)="toggleFaq(i)" class="w-full flex justify-between items-center text-left p-6 font-semibold text-lg text-white">
+              <span>{{ translationService.translate(faq.questionKey) }}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" 
+                   class="w-6 h-6 transition-transform duration-300" [class.rotate-180]="openIndex() === i">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              </svg>
+            </button>
+            @if (openIndex() === i) {
+              <div class="px-6 pb-6 text-gray-300 leading-relaxed">
+                <p>{{ translationService.translate(faq.answerKey) }}</p>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+    
+    <!-- Still need help? -->
+    <div class="max-w-3xl mx-auto mt-20 text-center bg-gray-800/50 rounded-lg p-10" appRevealOnScroll>
+      <h2 class="text-3xl font-bold text-white font-cinzel mb-4 slide-up">{{ translationService.translate('support.stillNeedHelp.title') }}</h2>
+      <p class="text-gray-400 text-lg mb-8 slide-up" style="animation-delay: 100ms;">{{ translationService.translate('support.stillNeedHelp.desc') }}</p>
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-6 slide-up" style="animation-delay: 200ms;">
+        <a href="#" (click)="$event.preventDefault(); submitTicket()" class="bg-[#FFD97D] text-gray-900 font-bold py-3 px-8 rounded-md text-lg hover:bg-[#F4C27D] btn-cta-glow w-full sm:w-auto">
+          {{ translationService.translate('support.stillNeedHelp.ticketBtn') }}
+        </a>
+        <button (click)="toggleChatbot()" class="bg-transparent border-2 border-[#F4C27D] text-[#F4C27D] font-bold py-3 px-8 rounded-md text-lg hover:bg-[#F4C27D] hover:text-gray-900 transition-all duration-300 ease-in-out hover:scale-105 w-full sm:w-auto">
+          {{ translationService.translate('support.stillNeedHelp.aiBtn') }}
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Chatbot FAB -->
+<button (click)="toggleChatbot()" class="fixed bottom-8 right-8 bg-[#E18D5C] text-white rounded-full p-4 hover:bg-[#d47845] btn-cta-glow z-50">
+  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM12 12.75h.008v.008H12v-.008z" />
+  </svg>
+</button>
+
+@if (isChatbotOpen()) {
+  <app-chatbot (close)="toggleChatbot()"></app-chatbot>
+}

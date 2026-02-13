@@ -1,0 +1,286 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.cinematic-media-section {
+  position: relative;
+  background-color: #0a0805; /* Very dark rich brown/black */
+  color: #f4e4bc; /* Pale sand text */
+  padding: 8rem 2rem;
+  overflow: hidden;
+  font-family: 'Cinzel', serif; /* Assuming Cinzel is available as per other components */
+}
+
+/* --- Atmospheric Backgrounds --- */
+.sand-overlay {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, transparent 0%, #0a0805 90%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.container {
+  position: relative;
+  z-index: 2;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* --- Typography & Header --- */
+.media-header {
+  text-align: center;
+  margin-bottom: 5rem;
+}
+
+.section-title {
+  font-size: 3rem;
+  color: #e5c588; /* Legendary Sand Gold */
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin: 0.5rem 0;
+  text-shadow: 0 0 20px rgba(229, 197, 136, 0.4);
+  background: linear-gradient(to bottom, #fff5dc, #d4af37);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.section-subtitle {
+  font-family: 'Raleway', sans-serif; /* Fallback sans */
+  font-size: 1.1rem;
+  color: #a89f89;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 1rem;
+}
+
+/* --- Ornaments --- */
+.ornament-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1rem 0;
+  opacity: 0.8;
+}
+
+.line {
+  height: 1px;
+  width: 100px;
+  background: linear-gradient(90deg, transparent, #d4af37, transparent);
+}
+
+.diamond-accent {
+  width: 8px;
+  height: 8px;
+  background-color: #d4af37;
+  transform: rotate(45deg);
+  box-shadow: 0 0 10px #d4af37;
+}
+
+/* --- Grid Layout --- */
+.media-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1.fr)); /* Corrected fr unit syntax attempt, using 1fr */
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 3rem;
+  padding: 1rem;
+}
+
+/* --- Media Card --- */
+.media-card {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  cursor: pointer;
+  group: transition;
+  transition: transform 0.4s ease-out;
+}
+
+.media-card:hover {
+  transform: scale(1.02);
+  z-index: 10;
+}
+
+.media-content {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 2px;
+  background: #000;
+}
+
+.media-asset {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.8s ease, filter 0.4s ease;
+  filter: sepia(30%) contrast(110%);
+}
+
+.media-card:hover .media-asset {
+  transform: scale(1.1);
+  filter: sepia(0%) contrast(100%);
+}
+
+/* --- Card Frame & Effects --- */
+.card-border-frame {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  border: 1px solid rgba(212, 175, 55, 0.3); /* Faint gold border */
+  z-index: 10;
+  pointer-events: none;
+  transition: all 0.4s ease;
+}
+
+/* Corner Accents */
+.card-border-frame::before,
+.card-border-frame::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #d4af37;
+  transition: all 0.4s ease;
+  opacity: 0.6;
+}
+
+.card-border-frame::before {
+  top: 0;
+  left: 0;
+  border-right: none;
+  border-bottom: none;
+}
+
+.card-border-frame::after {
+  bottom: 0;
+  right: 0;
+  border-left: none;
+  border-top: none;
+}
+
+.media-card:hover .card-border-frame {
+  border-color: rgba(212, 175, 55, 0.8);
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.15);
+}
+
+.media-card:hover .card-border-frame::before,
+.media-card:hover .card-border-frame::after {
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+  border-color: #ffd97d; /* Lighter gold on hover */
+}
+
+/* --- Info Overlay --- */
+.media-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 2rem 1.5rem;
+  background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+  transform: translateY(20px);
+  opacity: 0;
+  transition: all 0.4s ease;
+}
+
+.media-card:hover .media-info {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.media-title {
+  color: #ffd97d;
+  font-size: 1.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+}
+
+.media-desc {
+  font-size: 0.9rem;
+  color: #ccc;
+  line-height: 1.4;
+}
+
+/* --- Play Icon --- */
+.play-icon-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  width: 60px;
+  height: 60px;
+  background: rgba(10, 8, 5, 0.6);
+  border: 2px solid #d4af37;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  opacity: 0.8;
+}
+
+.play-icon {
+  width: 30px;
+  height: 30px;
+  color: #d4af37;
+  margin-left: 4px; /* Optical adjustment */
+}
+
+.media-card:hover .play-icon-overlay {
+  transform: translate(-50%, -50%) scale(1);
+  background: rgba(212, 175, 55, 0.2);
+  border-color: #fff;
+  opacity: 1;
+}
+
+.media-card:hover .play-icon {
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .section-title {
+    font-size: 2rem;
+  }
+  
+  .media-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+
+/* --- Arabic Typography Fix --- */
+:host-context([lang="ar"]) {
+  direction: rtl;
+  font-family: 'Tajawal', sans-serif !important;
+}
+
+:host-context([lang="ar"]) .section-title,
+:host-context([lang="ar"]) .section-subtitle,
+:host-context([lang="ar"]) .media-title,
+:host-context([lang="ar"]) .media-desc {
+  font-family: 'Tajawal', sans-serif !important;
+  letter-spacing: 0 !important;
+  text-align: right;
+  font-feature-settings: "kern" 1, "liga" 1;
+}
+
+:host-context([lang="ar"]) .ornament-divider {
+  flex-direction: row-reverse;
+}

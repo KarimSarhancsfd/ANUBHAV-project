@@ -1,0 +1,34 @@
+<div class="news-cards-container">
+  <div class="news-row">
+    <div class="news-block">
+      <div class="card-group">
+        @for (card of newsCards(); track card.id) {
+          <div class="underlay">
+            <div 
+              class="card"
+              (mouseenter)="onCardMouseEnter(card.id)"
+              (mouseleave)="onCardMouseLeave()">
+              <div 
+                class="card-img-top" 
+                [style.background-image]="'url(' + card.image + ')'">
+              </div>
+              <div class="card-block">
+                <h5 class="card-title">
+                  {{ card.title }}
+                  <hr>
+                </h5>
+                <p class="card-text">
+                  {{ card.text }}
+                  <a [href]="card.link"><u>Read More...</u></a>
+                </p>
+                <p class="card-text">
+                  <small class="text-muted">{{ card.lastUpdated }}</small>
+                </p>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</div>

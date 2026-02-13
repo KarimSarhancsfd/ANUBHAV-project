@@ -1,0 +1,22 @@
+<section #openWorldContainer class="open-world-container">
+  <div class="open-world-sticky-parent">
+    <!-- Scroll-driven animation canvas -->
+    <canvas #scrollCanvas class="scroll-driven-canvas"></canvas>
+
+    <!-- Atmospheric Effects -->
+    <div class="god-rays"></div>
+    <div class="particles-overlay"></div>
+
+    <div class="absolute inset-0 bg-black/40 z-[4]"></div>
+    <div class="relative z-10 container mx-auto px-6 h-full flex items-center text-container-anim">
+      <div class="max-w-xl text-white">
+        <h2 class="text-5xl md:text-6xl font-extrabold font-cinzel text-[#FFD97D] title-glow">
+          {{ translationService.translate('openworld.title') }}
+        </h2>
+        <p class="mt-4 text-lg md:text-xl text-gray-200">
+          {{ translationService.translate('openworld.subtitle') }}
+        </p>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,29 @@
+<section class="py-20 px-4 sm:px-6 lg:px-8">
+  <div class="container mx-auto">
+    <header class="text-center mb-16 max-w-3xl mx-auto">
+      <h2 class="text-4xl md:text-5xl font-extrabold font-cinzel text-white">{{ translationService.translate('gamemodes.title') }}</h2>
+    </header>
+
+    <div class="grid md:grid-cols-2 gap-8">
+      <!-- PVE Section -->
+      <a href="#" (click)="$event.preventDefault(); exploreMode('PVE')" class="mode-card group pve-card legendary-image-reveal">
+        <div class="mode-card-bg pve-bg"></div>
+        <div class="mode-card-overlay"></div>
+        <div class="mode-card-content">
+          <h3 class="text-4xl font-bold font-cinzel text-white">{{ translationService.translate('gamemodes.pve.title') }}</h3>
+          <p class="text-gray-300 mt-4">{{ translationService.translate('gamemodes.pve.desc') }}</p>
+        </div>
+      </a>
+
+      <!-- PVP Section -->
+      <a href="#" (click)="$event.preventDefault(); exploreMode('PVP')" class="mode-card group pvp-card legendary-image-reveal" style="animation-delay: 150ms">
+        <div class="mode-card-bg pvp-bg"></div>
+        <div class="mode-card-overlay"></div>
+        <div class="mode-card-content">
+          <h3 class="text-4xl font-bold font-cinzel text-white">{{ translationService.translate('gamemodes.pvp.title') }}</h3>
+          <p class="text-gray-300 mt-4">{{ translationService.translate('gamemodes.pvp.desc') }}</p>
+        </div>
+      </a>
+    </div>
+  </div>
+</section>

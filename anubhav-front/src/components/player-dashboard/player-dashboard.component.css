@@ -1,0 +1,58 @@
+.dashboard-container {
+  min-height: calc(100vh - 80px);
+  background: radial-gradient(circle at 50% 0%, rgba(255, 217, 125, 0.05) 0%, transparent 50%),
+              radial-gradient(circle at 0% 100%, rgba(225, 141, 92, 0.05) 0%, transparent 50%);
+}
+
+.title-glow {
+  text-shadow: 0 0 20px rgba(255, 217, 125, 0.3);
+}
+
+.stat-card {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 217, 125, 0.1);
+  border-color: rgba(255, 217, 125, 0.2);
+}
+
+.content-panel {
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+.fade-in {
+  animation: fadeIn 0.8s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.btn-cta-glow {
+  box-shadow: 0 0 15px rgba(225, 141, 92, 0.4);
+}
+
+.btn-cta-glow:hover {
+  box-shadow: 0 0 25px rgba(225, 141, 92, 0.6);
+}
+
+/* Scrollbar customization for the dashboard */
+.dashboard-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dashboard-container::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dashboard-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 217, 125, 0.3);
+  border-radius: 10px;
+}
+
+.dashboard-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 217, 125, 0.5);
+}
