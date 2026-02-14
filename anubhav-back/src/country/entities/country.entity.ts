@@ -1,4 +1,3 @@
-import { SchoolSubject } from 'src/school-subject/entities/school-subject.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Column, CreateDateColumn, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
@@ -27,7 +26,4 @@ export class Country {
 
   @OneToMany(() => User, user => user.country_id)
   users: User[]
-
-  @OneToMany(() => SchoolSubject, schoolSubject => schoolSubject.country_id)
-  schoolSubject: SchoolSubject[]
 }

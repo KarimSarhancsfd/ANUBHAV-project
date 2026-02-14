@@ -1,8 +1,6 @@
-import { Book } from 'src/books/entities/book.entity';
 import { Question } from 'src/questions/entities/question.entity';
 import { User } from 'src/user/entities/user.entity';
 import { QuizResult } from './quiz-result.entity';
-import {SchoolSubject} from 'src/school-subject/entities/school-subject.entity';
 import {
   Column,
   Entity,
@@ -33,10 +31,6 @@ export class Quiz {
   @ManyToOne(() => User, (user) => user.id)
   @JoinColumn({ name: 'user_id', referencedColumnName: 'id' })
   user_id!: User;
-
-  @ManyToOne(() => Book, (book) => book.id)
-  @JoinColumn({ name: 'book_id', referencedColumnName: 'id' })
-  book_id!: Book;
 
   @Column()
   name!: string;
@@ -73,11 +67,6 @@ export class Quiz {
 
   @OneToMany(() => Question, (question) => question.quiz_id)
   questions: Question[];
-
-  //relation with schoole subject
-  @ManyToOne(() => SchoolSubject, (subject) => subject.subject)
-  @JoinColumn({ name: 'subject_name', referencedColumnName: 'id' })
-  subject_name!: SchoolSubject;
 
   @OneToMany(() => QuizResult, (quizResult) => quizResult.quiz)
   results: QuizResult[];

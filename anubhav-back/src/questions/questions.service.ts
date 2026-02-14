@@ -20,9 +20,9 @@ export class QuestionsService {
     private readonly response: Expose,
   ) {}
 
-  async create(createQuestionDto: CreateQuestionDto) {
+  async create(createQuestionDto: CreateQuestionDto & { quiz_id?: any }) {
     try {
-      const question = this.questionRepo.create(createQuestionDto);
+      const question = this.questionRepo.create(createQuestionDto as any);
       const result = await this.questionRepo.save(question);
       return this.response.success(
         SuccessStatusCodesEnum.Ok,
@@ -40,7 +40,7 @@ export class QuestionsService {
   async findAll() {
     try {
       const result = await this.questionRepo.find({
-        relations: { quiz_id: true, bookMark: true },
+        relations: { quiz_id: true },
       });
       return this.response.success(
         SuccessStatusCodesEnum.Ok,
@@ -129,7 +129,7 @@ export class QuestionsService {
       const question = await this.findOne(id);
       const updateQuestion = this.questionRepo.merge(
         question.data,
-        updateQuestionDto,
+        updateQuestionDto as any,
       );
       const result = await this.questionRepo.save(updateQuestion);
       return this.response.success(

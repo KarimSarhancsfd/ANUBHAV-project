@@ -1,7 +1,3 @@
-import { Bookmark } from 'src/bookmarks/entities/bookmark.entity';
-import { Book } from 'src/books/entities/book.entity';
-import { ChatBotMessage } from 'src/chat-bot-message/entities/chat-bot-message.entity';
-import { ChatBot } from 'src/chat-bot/entities/chat-bot.entity';
 import { Quiz } from 'src/quiz/entities/quiz.entity';
 import { Notification } from 'src/notification/entities/notification.entity';
 import { UserGroupChat } from 'src/user_group_chat/entities/user_group_chat.entity';
@@ -119,18 +115,6 @@ export class User {
 
   @OneToMany(() => Quiz, (quiz) => quiz.user_id)
   quizzes!: Quiz[];
-
-  @OneToMany(() => ChatBot, (chatbot) => chatbot.user_id)
-  chat_bots!: ChatBot[];
-
-  @OneToMany(() => Bookmark, (bookmark) => bookmark.user_id)
-  bookmarks!: Bookmark[];
-
-  @OneToMany(() => Book, (book) => book.user_id)
-  books!: Book[];
-
-  @OneToMany(() => ChatBotMessage, (chatbotMessage) => chatbotMessage.user_id)
-  chatbotMessages!: ChatBotMessage[];
 
   @OneToMany(() => UserActivities, (userActivities) => userActivities.user_id)
   userActivities!: UserActivities[];

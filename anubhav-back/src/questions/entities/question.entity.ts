@@ -1,6 +1,5 @@
 import { Quiz } from "src/quiz/entities/quiz.entity";
-import { Bookmark } from "src/bookmarks/entities/bookmark.entity";
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Question {
@@ -34,8 +33,4 @@ export class Question {
 
     @Column()
     mark_value!: number
-
-
-    @OneToOne(() => Bookmark, (bookMark) => bookMark.question_id)
-    bookMark: Bookmark
 }

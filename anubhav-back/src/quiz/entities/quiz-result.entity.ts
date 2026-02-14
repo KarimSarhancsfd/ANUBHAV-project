@@ -1,7 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
 import { Quiz } from './quiz.entity';
 import { User } from '../../user/entities/user.entity';
-import { SchoolSubject } from '../../school-subject/entities/school-subject.entity';
 
 export interface ResultDetail {
   questionId: number;
@@ -22,18 +21,11 @@ export class QuizResult {
   @ManyToOne(() => User, (user) => user.quizResults)
   user: User;
 
-  @ManyToOne(() => SchoolSubject, (subject) => subject.quizResults)
-  subject: SchoolSubject;
-
   @Column()
   totalScore: number;
 
   @Column({ type: 'json'})
   details: ResultDetail[];
-
-  get subjectName(): string {
-    return this.subject?.subject || '';
-  }
 }
 
 

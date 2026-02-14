@@ -28,7 +28,7 @@ export class CategoryService {
 
   async findAll() {
     try {
-      const result = await this.categoryRepository.find({ relations: { book: true, user_id: true } })
+      const result = await this.categoryRepository.find({ relations: { user_id: true } })
       return this.response.success(SuccessStatusCodesEnum.Ok, 'categories fetched successfully', result)
     } catch (error) {
       return this.response.error(ErrorStatusCodesEnum.BadRequest, error.message || 'server error')
@@ -37,7 +37,7 @@ export class CategoryService {
 
   async findOne(id: number) {
     try {
-      const category = await this.categoryRepository.findOne({ where: { id }, relations: { book: true, user_id: true } });
+      const category = await this.categoryRepository.findOne({ where: { id }, relations: { user_id: true } });
       if (!category) return this.response.error(ErrorStatusCodesEnum.BadRequest, 'category not found')
       return this.response.success(SuccessStatusCodesEnum.Ok, 'category fetched successfully', category)
     } catch (error) {

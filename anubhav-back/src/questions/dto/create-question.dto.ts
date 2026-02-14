@@ -1,18 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
-import { Bookmark } from 'src/bookmarks/entities/bookmark.entity';
-import { Quiz } from 'src/quiz/entities/quiz.entity';
 
 export class CreateQuestionDto {
   @IsNumber()
   @IsNotEmpty()
   @ApiProperty({ example: 1, description: 'quiz_id' })
-  quiz_id: Quiz;
-
-  @IsNumber()
-  @IsOptional()
-  @ApiProperty({ example: 2, description: 'bookMark' })
-  bookMark: Bookmark;
+  quiz_id: number;
 
   @IsString()
   @IsNotEmpty()

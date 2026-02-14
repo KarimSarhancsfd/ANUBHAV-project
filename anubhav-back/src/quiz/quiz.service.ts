@@ -33,7 +33,7 @@ export class QuizService {
       });
       const result = await this.quizRepo.save(newQuiz);
       questions.map(async (question) => {
-        await this.questionService.create({ ...question, quiz_id: result });
+        await this.questionService.create({ ...question, quiz_id: result.id } as any);
       });
       return this.response.success(
         SuccessStatusCodesEnum.Ok,
@@ -124,7 +124,7 @@ export class QuizService {
     try {
       const quiz = await this.quizRepo.findOne({ 
         where: { id: quizId },
-        relations: ['questions', 'subject'] 
+        relations: ['questions'] 
       });
       
       if (!quiz) {
@@ -151,11 +151,10 @@ export class QuizService {
       const totalScore = results.reduce((sum, r) => sum + r.mark, 0);
 
       
-      // Save results to database
+       // Save results to database
       const quizResult = this.resultRepo.create({
-        quiz: quiz, // pass the full quiz object
-        user: { id: userId },
-        subject: quiz.subject_name, // pass the full SchoolSubject object
+        quiz: quiz,
+        user: { id: userId } as any,
         totalScore,
         details: results
       });
@@ -167,7 +166,6 @@ export class QuizService {
         'Quiz submitted successfully',
         {
           quizId,
-          subjectName: quiz.subject_name,
           totalScore,
           maxPossibleScore: quiz.mark,
           questionResults: results

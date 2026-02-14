@@ -1,4 +1,3 @@
-import { Book } from 'src/books/entities/book.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
   Column,
@@ -7,7 +6,6 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -35,7 +33,4 @@ export class Category {
 
   @DeleteDateColumn({ type: 'timestamp' })
   deleteAt: Date;
-
-  @OneToMany(() => Book, (book) => book.category_id)
-  book: Book[];
 }

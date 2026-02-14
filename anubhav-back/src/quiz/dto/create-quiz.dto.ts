@@ -7,17 +7,10 @@ import {
   IsString,
 } from 'class-validator';
 import { QuizLevel, QuizQuestionsType } from '../entities/quiz.entity';
-import { Book } from 'src/books/entities/book.entity';
-import { User } from 'src/user/entities/user.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { Question } from 'src/questions/entities/question.entity';
 
 export class CreateQuizDto {
-  @IsNumber()
-  @IsNotEmpty()
-  @ApiProperty({ example: 1, description: 'book_id' })
-  book_id!: Book;
-
   @IsString()
   @IsNotEmpty()
   @ApiProperty({ example: 'name', description: 'name' })
