@@ -19,7 +19,6 @@ export class RemoteConfig {
   id: string;
 
   @Column({ unique: true })
-  @Index()
   key: string;
 
   @Column({ type: 'json' })
