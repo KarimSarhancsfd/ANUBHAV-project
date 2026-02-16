@@ -7,9 +7,13 @@ import { Expose } from 'src/classes';
 import { QuestionsService } from '../questions/questions.service';
 import { Question } from '../questions/entities/question.entity';
 import { QuizResult } from './entities/quiz-result.entity';
+import { PlayerProgressModule } from '../player-progress/player-progress.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Quiz, Question, QuizResult])],
+  imports: [
+    TypeOrmModule.forFeature([Quiz, Question, QuizResult]),
+    PlayerProgressModule,
+  ],
   controllers: [QuizController],
   providers: [QuizService, Expose, QuestionsService],
 })

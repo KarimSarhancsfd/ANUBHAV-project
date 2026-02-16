@@ -12,6 +12,7 @@ import {
   Expose,
   SuccessStatusCodesEnum,
 } from 'src/classes';
+import { PlayerProgressService } from '../player-progress/player-progress.service';
 
 @Injectable()
 export class QuizService {
@@ -21,7 +22,8 @@ export class QuizService {
     private readonly response: Expose,
     private questionService: QuestionsService,
     @InjectRepository(QuizResult) 
-    private resultRepo: Repository<QuizResult>
+    private resultRepo: Repository<QuizResult>,
+    private playerProgressService: PlayerProgressService,
   ) { }
 
   async createQuiz(createQuizDto: CreateQuizDto, user: any): Promise<any> {
@@ -160,6 +162,9 @@ export class QuizService {
       });
       
       await this.resultRepo.save(quizResult);
+      
+      // Reward user with XP
+      const progression = await this.playerProgressService.grantXP(userId, totalScore);
 
       return this.response.success(
         SuccessStatusCodesEnum.Ok,

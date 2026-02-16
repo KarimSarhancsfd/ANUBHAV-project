@@ -19,6 +19,10 @@ export enum EventType {
   TOURNAMENT = 'tournament',
   MAINTENANCE = 'maintenance',
   ANNOUNCEMENT = 'announcement',
+  XP_BOOST = 'xp_boost',
+  GRANT_XP = 'grant_xp',
+  MODIFY_STAT = 'modify_stat',
+  UNLOCK_ACHIEVEMENT = 'unlock_achievement',
   CUSTOM = 'custom',
 }
 

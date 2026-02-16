@@ -6,6 +6,7 @@ import { EventModule } from './event/event.module';
 import { ConfigModule } from './config/config.module';
 import { RealtimeModule } from './realtime/realtime.module';
 import { LiveOpsLog } from './entities/liveops-log.entity';
+import { PlayerProgressModule } from '../player-progress/player-progress.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { LiveOpsLog } from './entities/liveops-log.entity';
     EventModule,
     ConfigModule,
     RealtimeModule,
+    PlayerProgressModule,
   ],
   providers: [LiveOpsService],
   controllers: [LiveOpsController],

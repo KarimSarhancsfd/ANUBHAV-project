@@ -1,19 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { LiveOpsLog, LiveOpsAction, LiveOpsStatus } from './entities/liveops-log.entity';
 import { EventService } from './event/event.service';
 import { ConfigService } from './config/config.service';
 import { RealtimeGateway } from './realtime/realtime.gateway';
+import { PlayerProgressService } from '../player-progress/player-progress.service';
+import { EventType } from './event/entities/live-event.entity';
 
 @Injectable()
 export class LiveOpsService {
+  private readonly logger = new Logger(LiveOpsService.name);
+
   constructor(
     @InjectRepository(LiveOpsLog)
     private readonly logRepository: Repository<LiveOpsLog>,
     private readonly eventService: EventService,
     private readonly configService: ConfigService,
     private readonly realtimeGateway: RealtimeGateway,
+    private readonly playerProgressService: PlayerProgressService,
   ) {}
 
   async getSystemStatus() {
@@ -33,6 +38,7 @@ export class LiveOpsService {
   async triggerEvent(eventId: string) {
     const event = await this.eventService.triggerEvent(eventId);
     
+    // Broadcast generic liveops event
     this.realtimeGateway.broadcastEvent('liveops:event', {
       id: event.id,
       title: event.title,
@@ -40,6 +46,25 @@ export class LiveOpsService {
       payload: event.payload,
       triggeredAt: new Date().toISOString(),
     });
+
+    // Handle specific progression event types
+    switch (event.type) {
+      case EventType.DOUBLE_XP:
+      case EventType.XP_BOOST:
+        await this.applyXPBoost(event);
+        break;
+      case EventType.GRANT_XP:
+        await this.grantXPToUsers(event);
+        break;
+      case EventType.MODIFY_STAT:
+        await this.modifyPlayerStat(event);
+        break;
+      case EventType.UNLOCK_ACHIEVEMENT:
+        await this.unlockAchievement(event);
+        break;
+      default:
+        this.logger.debug(`No specific handler for event type: ${event.type}`);
+    }
 
     await this.logAction(LiveOpsAction.EVENT_TRIGGERED, LiveOpsStatus.SUCCESS, { eventId });
     return event;
@@ -58,6 +83,62 @@ export class LiveOpsService {
 
     await this.logAction(LiveOpsAction.CONFIG_UPDATED, LiveOpsStatus.SUCCESS, { key });
     return config;
+  }
+
+  async applyXPBoost(event: any) {
+    const { multiplier, duration, target } = event.payload;
+    if (target === 'ALL') {
+      await this.playerProgressService.applyGlobalModifier({ type: 'XP_BOOST', value: multiplier });
+    }
+    
+    this.realtimeGateway.broadcastEvent('player:xp_boost', {
+      multiplier,
+      duration,
+      target,
+    });
+
+    await this.logAction(LiveOpsAction.EVENT_TRIGGERED, LiveOpsStatus.SUCCESS, { type: 'XP_BOOST', multiplier });
+  }
+
+  async grantXPToUsers(event: any) {
+    const { userIds, amount } = event.payload;
+    const results: any[] = [];
+    
+    // Fetch global multiplier from remote config
+    const globalMultiplier = await this.configService.getConfigValue<number>('progression.xp_multiplier', 1);
+    
+    for (const userId of userIds) {
+      const updated = await this.playerProgressService.grantXP(userId, amount, globalMultiplier);
+      results.push(updated);
+      
+      this.realtimeGateway.broadcastToChannel(`user:${userId}`, 'player:progress_update', updated);
+    }
+
+    await this.logAction(LiveOpsAction.EVENT_TRIGGERED, LiveOpsStatus.SUCCESS, { type: 'GRANT_XP', count: userIds.length });
+    return results;
+  }
+
+  async modifyPlayerStat(event: any) {
+    const { userId, statKey, value } = event.payload;
+    const updated = await this.playerProgressService.modifyStat(userId, statKey, value);
+    
+    this.realtimeGateway.broadcastToChannel(`user:${userId}`, 'player:progress_update', updated);
+    
+    await this.logAction(LiveOpsAction.EVENT_TRIGGERED, LiveOpsStatus.SUCCESS, { type: 'MODIFY_STAT', userId, statKey });
+    return updated;
+  }
+
+  async unlockAchievement(event: any) {
+    const { userId, achievementKey } = event.payload;
+    const updated = await this.playerProgressService.unlockAchievement(userId, achievementKey);
+    
+    this.realtimeGateway.broadcastToChannel(`user:${userId}`, 'player:achievement_unlocked', {
+      achievementKey,
+      progress: updated,
+    });
+
+    await this.logAction(LiveOpsAction.EVENT_TRIGGERED, LiveOpsStatus.SUCCESS, { type: 'UNLOCK_ACHIEVEMENT', userId, achievementKey });
+    return updated;
   }
 
   async getRecentLogs(limit: number = 50) {
