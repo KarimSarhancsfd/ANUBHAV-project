@@ -32,7 +32,15 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   // User will join their own room to make direct messaging possible
-
+  @SubscribeMessage('joinUserRoom')
+  handleJoinUserRoom(
+    @MessageBody() data: { userId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    client.join(`user:${data.userId}`);
+    this.onlineUsers.set(data.userId, client.id);
+    console.log(`User ${data.userId} joined their personal room`);
+  }
 
   // Private Chat
   @SubscribeMessage('privateMessage')
@@ -83,4 +91,39 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     // Emit to all group members except sender
     this.server.to(`group_${groupId}`).emit('receiveGroupMessage', data);
   }
+
+  // ==================== ECONOMY REAL-TIME EVENTS ====================
+
+  /**
+   * Emit wallet update to user
+   */
+  emitWalletUpdate(userId: number, wallet: any) {
+    this.server.to(`user:${userId}`).emit('wallet:updated', wallet);
+    console.log(`Emitted wallet update to user ${userId}`);
+  }
+
+  /**
+   * Emit purchase completion to user
+   */
+  emitPurchaseCompleted(userId: number, purchase: any) {
+    this.server.to(`user:${userId}`).emit('purchase:completed', purchase);
+    console.log(`Emitted purchase completion to user ${userId}`);
+  }
+
+  /**
+   * Emit item granted to user
+   */
+  emitItemGranted(userId: number, item: any) {
+    this.server.to(`user:${userId}`).emit('item:granted', item);
+    console.log(`Emitted item granted to user ${userId}`);
+  }
+
+  /**
+   * Emit transaction recorded to user
+   */
+  emitTransactionRecorded(userId: number, transaction: any) {
+    this.server.to(`user:${userId}`).emit('transaction:recorded', transaction);
+    console.log(`Emitted transaction to user ${userId}`);
+  }
 }
+

@@ -17,6 +17,7 @@ import { CountryModule } from './country/country.module';
 import { AIService } from './ai/ai.service';
 import { LiveOpsModule } from './live-ops/live-ops.module';
 import { PlayerProgressModule } from './player-progress/player-progress.module';
+import { EconomyModule } from './economy/economy.module';
 
 
 
@@ -46,6 +47,7 @@ dotenv.config();
     CountryModule,
     LiveOpsModule,
     PlayerProgressModule,
+    EconomyModule,
   ],
   controllers: [AppController],
   providers: [AppService, GoogleStrategy, ChatGateway, AIService],
