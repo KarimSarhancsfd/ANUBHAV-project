@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource, EntityManager } from 'typeorm';
 import { Purchase } from './entities/purchase.entity';
 import { PurchaseStatus, CurrencyType, TransactionType } from './enums/economy.enums';
 import { EconomyService } from './economy.service';
@@ -30,6 +30,7 @@ export class PurchaseService {
     private purchaseRepository: Repository<Purchase>,
     private economyService: EconomyService,
     private paymentService: PaymentService,
+    private dataSource: DataSource,
   ) {}
 
   /**
@@ -149,37 +150,43 @@ export class PurchaseService {
       throw new BadRequestException('Payment verification failed');
     }
 
-    // Grant currency
-    const product = purchase.metadata?.product || PRODUCT_CATALOG[purchase.productId];
+    // Grant currency and complete purchase atomically
+    return await this.dataSource.transaction(async (manager: EntityManager) => {
+      const product = purchase.metadata?.product || PRODUCT_CATALOG[purchase.productId];
 
-    if (product.coins > 0) {
-      await this.economyService.addCurrency(
-        purchase.userId,
-        CurrencyType.COINS,
-        product.coins,
-        `Purchase: ${purchase.productId}`,
-        TransactionType.PURCHASE,
-        { purchaseId: purchase.id },
-      );
-    }
+      if (product.coins > 0) {
+        await this.economyService.addCurrency(
+          purchase.userId,
+          CurrencyType.COINS,
+          product.coins,
+          `Purchase: ${purchase.productId}`,
+          TransactionType.PURCHASE,
+          { purchaseId: purchase.id },
+          `purchase_coins:${purchase.id}`, // Idempotency key
+          undefined,
+          manager,
+        );
+      }
 
-    if (product.gems > 0) {
-      await this.economyService.addCurrency(
-        purchase.userId,
-        CurrencyType.GEMS,
-        product.gems,
-        `Purchase: ${purchase.productId}`,
-        TransactionType.PURCHASE,
-        { purchaseId: purchase.id },
-      );
-    }
+      if (product.gems > 0) {
+        await this.economyService.addCurrency(
+          purchase.userId,
+          CurrencyType.GEMS,
+          product.gems,
+          `Purchase: ${purchase.productId}`,
+          TransactionType.PURCHASE,
+          { purchaseId: purchase.id },
+          `purchase_gems:${purchase.id}`, // Idempotency key
+          undefined,
+          manager,
+        );
+      }
 
-    // Update purchase status
-    purchase.status = PurchaseStatus.COMPLETED;
-    purchase.verifiedAt = new Date();
-    await this.purchaseRepository.save(purchase);
-
-    return purchase;
+      // Update purchase status
+      purchase.status = PurchaseStatus.COMPLETED;
+      purchase.verifiedAt = new Date();
+      return await manager.save(purchase);
+    });
   }
 
   /**

@@ -21,7 +21,12 @@ import {
 } from './dto/economy.dto';
 import { CurrencyType, ItemType, TransactionType } from './enums/economy.enums';
 
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { RolesGuard } from '../auth/guard/roles.guard';
+import { Role } from '../auth/decorator/roles.decorator';
+
 @Controller('economy')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class EconomyController {
   constructor(
     private readonly economyService: EconomyService,
@@ -36,10 +41,7 @@ export class EconomyController {
    */
   @Get('wallet')
   async getWallet(@Request() req) {
-    const userId = req.user?.id || req.query.userId; // For testing without auth
-    if (!userId) {
-      throw new BadRequestException('User ID required');
-    }
+    const userId = req.user.id;
     return this.economyService.getWallet(Number(userId));
   }
 
@@ -52,11 +54,7 @@ export class EconomyController {
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
   ) {
-    const userId = req.user?.id || req.query.userId;
-    if (!userId) {
-      throw new BadRequestException('User ID required');
-    }
-
+    const userId = req.user.id;
     return this.economyService.getTransactionHistory(
       Number(userId),
       limit ? Number(limit) : 50,
@@ -79,11 +77,7 @@ export class EconomyController {
    */
   @Post('purchase/initiate')
   async initiatePurchase(@Request() req, @Body() dto: InitiatePurchaseDto) {
-    const userId = req.user?.id || req.body.userId;
-    if (!userId) {
-      throw new BadRequestException('User ID required');
-    }
-
+    const userId = req.user.id;
     return this.purchaseService.initiatePurchase(
       Number(userId),
       dto.productId,
@@ -119,11 +113,7 @@ export class EconomyController {
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
   ) {
-    const userId = req.user?.id || req.query.userId;
-    if (!userId) {
-      throw new BadRequestException('User ID required');
-    }
-
+    const userId = req.user.id;
     return this.purchaseService.getUserPurchases(
       Number(userId),
       limit ? Number(limit) : 50,
@@ -141,11 +131,7 @@ export class EconomyController {
     @Request() req,
     @Query('itemType') itemType?: ItemType,
   ) {
-    const userId = req.user?.id || req.query.userId;
-    if (!userId) {
-      throw new BadRequestException('User ID required');
-    }
-
+    const userId = req.user.id;
     return this.inventoryService.getInventory(Number(userId), itemType);
   }
 
@@ -154,11 +140,8 @@ export class EconomyController {
    */
   @Post('inventory/purchase')
   async purchaseItem(@Request() req, @Body() dto: PurchaseItemDto) {
-    const userId = req.user?.id || req.body.userId;
-    if (!userId) {
-      throw new BadRequestException('User ID required');
-    }
-
+    const userId = req.user.id;
+    
     // In production, item details would come from database/config
     const itemType = ItemType.SKIN; // Example
 
@@ -169,6 +152,7 @@ export class EconomyController {
       dto.price,
       dto.currencyType,
       dto.metadata,
+      dto.idempotencyKey,
     );
   }
 
@@ -179,6 +163,7 @@ export class EconomyController {
    * Admin: Grant currency to player
    */
   @Post('admin/grant-currency')
+  @Role('admin')
   async grantCurrency(@Body() dto: AddCurrencyDto) {
     return this.economyService.addCurrency(
       dto.userId,
@@ -194,6 +179,7 @@ export class EconomyController {
    * Admin: Grant item to player
    */
   @Post('admin/grant-item')
+  @Role('admin')
   async grantItem(@Body() dto: GrantItemDto) {
     // In production, itemType would come from database
     const itemType = ItemType.SKIN; // Example

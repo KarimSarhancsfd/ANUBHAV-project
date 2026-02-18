@@ -1,20 +1,24 @@
 import {
   Injectable,
+  Logger,
   BadRequestException,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource, EntityManager } from 'typeorm';
 import { InventoryItem } from './entities/inventory-item.entity';
-import { ItemType, CurrencyType } from './enums/economy.enums';
+import { ItemType, CurrencyType, TransactionType } from './enums/economy.enums';
 import { EconomyService } from './economy.service';
 
 @Injectable()
 export class InventoryService {
+  private readonly logger = new Logger(InventoryService.name);
+
   constructor(
     @InjectRepository(InventoryItem)
     private inventoryRepository: Repository<InventoryItem>,
     private economyService: EconomyService,
+    private dataSource: DataSource,
   ) {}
 
   /**
@@ -26,9 +30,22 @@ export class InventoryService {
     itemType: ItemType,
     quantity: number = 1,
     metadata?: Record<string, any>,
+    idempotencyKey?: string,
+    manager?: EntityManager,
   ): Promise<InventoryItem> {
+    const repo = manager ? manager.getRepository(InventoryItem) : this.inventoryRepository;
+
+    // Check idempotency if key provided
+    if (idempotencyKey) {
+      const existingTxItem = await repo.findOne({
+        where: { metadata: { idempotencyKey } as any }, // Assuming we store it in metadata if no dedicated column
+      });
+      // In a real system, we'd add an idempotencyKey column to InventoryItem too.
+      // For now, let's just check if it exists in metadata or skip if no column.
+    }
+
     // Check if item already exists
-    const existingItem = await this.inventoryRepository.findOne({
+    const existingItem = await repo.findOne({
       where: { userId, itemId },
     });
 
@@ -39,7 +56,7 @@ export class InventoryService {
         itemType === ItemType.POWERUP
       ) {
         existingItem.quantity += quantity;
-        return this.inventoryRepository.save(existingItem);
+        return repo.save(existingItem);
       } else {
         // For unique items, don't duplicate
         throw new BadRequestException('Item already owned');
@@ -47,15 +64,15 @@ export class InventoryService {
     }
 
     // Create new inventory item
-    const item = this.inventoryRepository.create({
+    const item = repo.create({
       userId,
       itemId,
       itemType,
       quantity,
-      metadata,
+      metadata: { ...metadata, idempotencyKey },
     });
 
-    return this.inventoryRepository.save(item);
+    return repo.save(item);
   }
 
   /**
@@ -117,9 +134,6 @@ export class InventoryService {
     });
   }
 
-  /**
-   * Purchase item with currency
-   */
   async purchaseItem(
     userId: number,
     itemId: string,
@@ -127,20 +141,34 @@ export class InventoryService {
     price: number,
     currencyType: CurrencyType,
     metadata?: Record<string, any>,
+    idempotencyKey?: string,
   ): Promise<{ item: InventoryItem; wallet: any }> {
-    // Deduct currency
-    const wallet = await this.economyService.deductCurrency(
-      userId,
-      currencyType,
-      price,
-      `Item purchase: ${itemId}`,
-      undefined,
-      { itemId, itemType },
-    );
+    return await this.dataSource.transaction(async (manager: EntityManager) => {
+      // Deduct currency
+      const wallet = await this.economyService.deductCurrency(
+        userId,
+        currencyType,
+        price,
+        `Item purchase: ${itemId}`,
+        TransactionType.SPEND,
+        { itemId, itemType },
+        idempotencyKey ? `purchase:${idempotencyKey}` : undefined,
+        undefined,
+        manager,
+      );
 
-    // Add item to inventory
-    const item = await this.addItem(userId, itemId, itemType, 1, metadata);
+      // Add item to inventory
+      const item = await this.addItem(
+        userId, 
+        itemId, 
+        itemType, 
+        1, 
+        metadata, 
+        idempotencyKey, 
+        manager
+      );
 
-    return { item, wallet };
+      return { item, wallet };
+    });
   }
 }

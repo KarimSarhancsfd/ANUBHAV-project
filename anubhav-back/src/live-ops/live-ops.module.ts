@@ -7,6 +7,8 @@ import { ConfigModule } from './config/config.module';
 import { RealtimeModule } from './realtime/realtime.module';
 import { LiveOpsLog } from './entities/liveops-log.entity';
 import { PlayerProgressModule } from '../player-progress/player-progress.module';
+import { EconomyModule } from '../economy/economy.module';
+import { forwardRef } from '@nestjs/common';
 
 @Module({
   imports: [
@@ -14,7 +16,8 @@ import { PlayerProgressModule } from '../player-progress/player-progress.module'
     EventModule,
     ConfigModule,
     RealtimeModule,
-    PlayerProgressModule,
+    forwardRef(() => PlayerProgressModule),
+    EconomyModule,
   ],
   providers: [LiveOpsService],
   controllers: [LiveOpsController],

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { LiveOpsLog, LiveOpsAction, LiveOpsStatus } from './entities/liveops-log.entity';
@@ -7,6 +7,8 @@ import { ConfigService } from './config/config.service';
 import { RealtimeGateway } from './realtime/realtime.gateway';
 import { PlayerProgressService } from '../player-progress/player-progress.service';
 import { EventType } from './event/entities/live-event.entity';
+import { EconomyService } from '../economy/economy.service';
+import { CurrencyType, TransactionType } from '../economy/enums/economy.enums';
 
 @Injectable()
 export class LiveOpsService {
@@ -18,7 +20,9 @@ export class LiveOpsService {
     private readonly eventService: EventService,
     private readonly configService: ConfigService,
     private readonly realtimeGateway: RealtimeGateway,
+    @Inject(forwardRef(() => PlayerProgressService))
     private readonly playerProgressService: PlayerProgressService,
+    private readonly economyService: EconomyService,
   ) {}
 
   async getSystemStatus() {
@@ -56,6 +60,9 @@ export class LiveOpsService {
       case EventType.GRANT_XP:
         await this.grantXPToUsers(event);
         break;
+      case EventType.GRANT_CURRENCY:
+        await this.grantCurrencyToUsers(event);
+        break;
       case EventType.MODIFY_STAT:
         await this.modifyPlayerStat(event);
         break;
@@ -68,6 +75,27 @@ export class LiveOpsService {
 
     await this.logAction(LiveOpsAction.EVENT_TRIGGERED, LiveOpsStatus.SUCCESS, { eventId });
     return event;
+  }
+
+  async grantCurrencyToUsers(event: any) {
+    const { userIds, currencyType, amount, reason } = event.payload;
+    const results: any[] = [];
+    
+    for (const userId of userIds) {
+      const wallet = await this.economyService.addCurrency(
+        userId,
+        currencyType as CurrencyType,
+        amount,
+        reason || `LiveOps Reward: ${event.title}`,
+        TransactionType.REWARD,
+        { eventId: event.id },
+        `liveops:${event.id}:${userId}`, // Idempotency key
+      );
+      results.push(wallet);
+    }
+
+    await this.logAction(LiveOpsAction.EVENT_TRIGGERED, LiveOpsStatus.SUCCESS, { type: 'GRANT_CURRENCY', count: userIds.length });
+    return results;
   }
 
   async pushConfigUpdate(key: string) {

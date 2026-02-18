@@ -47,6 +47,14 @@ export class Transaction {
   @Column({ type: 'varchar', length: 500 })
   reason: string;
 
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  @Index({ unique: true })
+  idempotencyKey: string;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  @Index()
+  referenceId: string;
+
   @Column({ type: 'json', nullable: true })
   metadata: Record<string, any>;
 

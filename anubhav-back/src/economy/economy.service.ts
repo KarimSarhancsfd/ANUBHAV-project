@@ -1,6 +1,6 @@
-import { Injectable, BadRequestException, NotFoundException, Inject, forwardRef, Optional } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException, NotFoundException, Inject, forwardRef, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, EntityManager } from 'typeorm';
 import { Wallet } from './entities/wallet.entity';
 import { Transaction } from './entities/transaction.entity';
 import { CurrencyType, TransactionType } from './enums/economy.enums';
@@ -8,6 +8,8 @@ import { ChatGateway } from '../chat/chat.gateway';
 
 @Injectable()
 export class EconomyService {
+  private readonly logger = new Logger(EconomyService.name);
+
   constructor(
     @InjectRepository(Wallet)
     private walletRepository: Repository<Wallet>,
@@ -64,9 +66,26 @@ export class EconomyService {
     reason: string,
     transactionType: TransactionType = TransactionType.REWARD,
     metadata?: Record<string, any>,
+    idempotencyKey?: string,
+    referenceId?: string,
+    manager?: EntityManager,
   ): Promise<Wallet> {
     if (amount <= 0) {
       throw new BadRequestException('Amount must be positive');
+    }
+
+    if (manager) {
+      return this.addCurrencyWithManager(
+        manager,
+        userId,
+        currencyType,
+        amount,
+        reason,
+        transactionType,
+        metadata,
+        idempotencyKey,
+        referenceId,
+      );
     }
 
     const queryRunner = this.dataSource.createQueryRunner();
@@ -74,55 +93,18 @@ export class EconomyService {
     await queryRunner.startTransaction();
 
     try {
-      // Get wallet with lock
-      const wallet = await queryRunner.manager.findOne(Wallet, {
-        where: { userId },
-        lock: { mode: 'pessimistic_write' },
-      });
-
-      if (!wallet) {
-        throw new NotFoundException('Wallet not found');
-      }
-
-      const balanceBefore =
-        currencyType === CurrencyType.COINS ? wallet.coins : wallet.gems;
-      const balanceAfter = Number(balanceBefore) + Number(amount);
-
-      // Update wallet
-      if (currencyType === CurrencyType.COINS) {
-        wallet.coins = balanceAfter;
-      } else {
-        wallet.gems = balanceAfter;
-      }
-
-      await queryRunner.manager.save(wallet);
-
-      // Record transaction
-      const transaction = queryRunner.manager.create(Transaction, {
+      const wallet = await this.addCurrencyWithManager(
+        queryRunner.manager,
         userId,
-        type: transactionType,
         currencyType,
         amount,
-        balanceBefore,
-        balanceAfter,
         reason,
+        transactionType,
         metadata,
-      });
-
-      await queryRunner.manager.save(transaction);
-
+        idempotencyKey,
+        referenceId,
+      );
       await queryRunner.commitTransaction();
-
-      // Emit real-time wallet update
-      try {
-        if (this.chatGateway) {
-          this.chatGateway.emitWalletUpdate(userId, wallet);
-        }
-      } catch (error) {
-        // Don't fail the transaction if WebSocket emit fails
-        console.error('Failed to emit wallet update:', error);
-      }
-
       return wallet;
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -130,6 +112,78 @@ export class EconomyService {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  private async addCurrencyWithManager(
+    manager: EntityManager,
+    userId: number,
+    currencyType: CurrencyType,
+    amount: number,
+    reason: string,
+    transactionType: TransactionType,
+    metadata?: Record<string, any>,
+    idempotencyKey?: string,
+    referenceId?: string,
+  ): Promise<Wallet> {
+    // Check idempotency
+    if (idempotencyKey) {
+      const existingTx = await manager.findOne(Transaction, {
+        where: { idempotencyKey },
+      });
+      if (existingTx) {
+        return this.getOrCreateWallet(userId);
+      }
+    }
+
+    // Get wallet with lock
+    const wallet = await manager.findOne(Wallet, {
+      where: { userId },
+      lock: { mode: 'pessimistic_write' },
+    });
+
+    if (!wallet) {
+      throw new NotFoundException('Wallet not found');
+    }
+
+    const balanceBefore =
+      currencyType === CurrencyType.COINS ? wallet.coins : wallet.gems;
+    const balanceAfter = Number(balanceBefore) + Number(amount);
+
+    // Update wallet
+    if (currencyType === CurrencyType.COINS) {
+      wallet.coins = balanceAfter;
+    } else {
+      wallet.gems = balanceAfter;
+    }
+
+    await manager.save(wallet);
+
+    // Record transaction
+    const transaction = manager.create(Transaction, {
+      userId,
+      type: transactionType,
+      currencyType,
+      amount,
+      balanceBefore,
+      balanceAfter,
+      reason,
+      idempotencyKey,
+      referenceId,
+      metadata,
+    });
+
+    await manager.save(transaction);
+
+    // Emit real-time wallet update (outside of transaction completion here, usually handled by the caller or by post-commit hook if available, but we'll do it here for simplicity as it's not critical)
+    try {
+      if (this.chatGateway) {
+        this.chatGateway.emitWalletUpdate(userId, wallet);
+      }
+    } catch (error) {
+      this.logger.error('Failed to emit wallet update:', error);
+    }
+
+    return wallet;
   }
 
   /**
@@ -142,9 +196,26 @@ export class EconomyService {
     reason: string,
     transactionType: TransactionType = TransactionType.SPEND,
     metadata?: Record<string, any>,
+    idempotencyKey?: string,
+    referenceId?: string,
+    manager?: EntityManager,
   ): Promise<Wallet> {
     if (amount <= 0) {
       throw new BadRequestException('Amount must be positive');
+    }
+
+    if (manager) {
+      return this.deductCurrencyWithManager(
+        manager,
+        userId,
+        currencyType,
+        amount,
+        reason,
+        transactionType,
+        metadata,
+        idempotencyKey,
+        referenceId,
+      );
     }
 
     const queryRunner = this.dataSource.createQueryRunner();
@@ -152,61 +223,18 @@ export class EconomyService {
     await queryRunner.startTransaction();
 
     try {
-      // Get wallet with lock
-      const wallet = await queryRunner.manager.findOne(Wallet, {
-        where: { userId },
-        lock: { mode: 'pessimistic_write' },
-      });
-
-      if (!wallet) {
-        throw new NotFoundException('Wallet not found');
-      }
-
-      const balanceBefore =
-        currencyType === CurrencyType.COINS ? wallet.coins : wallet.gems;
-
-      // Check sufficient balance
-      if (Number(balanceBefore) < Number(amount)) {
-        throw new BadRequestException('Insufficient balance');
-      }
-
-      const balanceAfter = Number(balanceBefore) - Number(amount);
-
-      // Update wallet
-      if (currencyType === CurrencyType.COINS) {
-        wallet.coins = balanceAfter;
-      } else {
-        wallet.gems = balanceAfter;
-      }
-
-      await queryRunner.manager.save(wallet);
-
-      // Record transaction (negative amount)
-      const transaction = queryRunner.manager.create(Transaction, {
+      const wallet = await this.deductCurrencyWithManager(
+        queryRunner.manager,
         userId,
-        type: transactionType,
         currencyType,
-        amount: -amount,
-        balanceBefore,
-        balanceAfter,
+        amount,
         reason,
+        transactionType,
         metadata,
-      });
-
-      await queryRunner.manager.save(transaction);
-
+        idempotencyKey,
+        referenceId,
+      );
       await queryRunner.commitTransaction();
-
-      // Emit real-time wallet update
-      try {
-        if (this.chatGateway) {
-          this.chatGateway.emitWalletUpdate(userId, wallet);
-        }
-      } catch (error) {
-        // Don't fail the transaction if WebSocket emit fails
-        console.error('Failed to emit wallet update:', error);
-      }
-
       return wallet;
     } catch (error) {
       await queryRunner.rollbackTransaction();
@@ -214,6 +242,84 @@ export class EconomyService {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  private async deductCurrencyWithManager(
+    manager: EntityManager,
+    userId: number,
+    currencyType: CurrencyType,
+    amount: number,
+    reason: string,
+    transactionType: TransactionType,
+    metadata?: Record<string, any>,
+    idempotencyKey?: string,
+    referenceId?: string,
+  ): Promise<Wallet> {
+    // Check idempotency
+    if (idempotencyKey) {
+      const existingTx = await manager.findOne(Transaction, {
+        where: { idempotencyKey },
+      });
+      if (existingTx) {
+        return this.getOrCreateWallet(userId);
+      }
+    }
+
+    // Get wallet with lock
+    const wallet = await manager.findOne(Wallet, {
+      where: { userId },
+      lock: { mode: 'pessimistic_write' },
+    });
+
+    if (!wallet) {
+      throw new NotFoundException('Wallet not found');
+    }
+
+    const balanceBefore =
+      currencyType === CurrencyType.COINS ? wallet.coins : wallet.gems;
+
+    // Check sufficient balance
+    if (Number(balanceBefore) < Number(amount)) {
+      throw new BadRequestException('Insufficient balance');
+    }
+
+    const balanceAfter = Number(balanceBefore) - Number(amount);
+
+    // Update wallet
+    if (currencyType === CurrencyType.COINS) {
+      wallet.coins = balanceAfter;
+    } else {
+      wallet.gems = balanceAfter;
+    }
+
+    await manager.save(wallet);
+
+    // Record transaction (negative amount)
+    const transaction = manager.create(Transaction, {
+      userId,
+      type: transactionType,
+      currencyType,
+      amount: -amount,
+      balanceBefore,
+      balanceAfter,
+      reason,
+      idempotencyKey,
+      referenceId,
+      metadata,
+    });
+
+    await manager.save(transaction);
+
+    // Emit real-time wallet update
+    try {
+      if (this.chatGateway) {
+        this.chatGateway.emitWalletUpdate(userId, wallet);
+      }
+    } catch (error) {
+      this.logger.error('Failed to emit wallet update:', error);
+    }
+
+    return wallet;
   }
 
   /**

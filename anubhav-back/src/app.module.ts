@@ -3,18 +3,18 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import * as dotenv from 'dotenv';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { CategoryModule } from './category/category.module';
-import { TermsModule } from './terms/terms.module';
+// import { CategoryModule } from './category/category.module';
+// import { TermsModule } from './terms/terms.module';
 import { UserModule } from './user/user.module';
-import { QuizModule } from './quiz/quiz.module';
+// import { QuizModule } from './quiz/quiz.module';
 import { GroupsModule } from './groups/groups.module';
 import { UseractivitiesModule } from './useractivities/useractivities.module';
 import { GoogleStrategy } from './google.strategy';
 import { UserGroupChatModule } from './user_group_chat/user_group_chat.module';
-import { QuestionsModule } from './questions/questions.module';
-import { ChatGateway } from './chat/chat.gateway';
+// import { QuestionsModule } from './questions/questions.module';
+import { ChatModule } from './chat/chat.module';
 import { CountryModule } from './country/country.module';
-import { AIService } from './ai/ai.service';
+// import { AIService } from './ai/ai.service';
 import { LiveOpsModule } from './live-ops/live-ops.module';
 import { PlayerProgressModule } from './player-progress/player-progress.module';
 import { EconomyModule } from './economy/economy.module';
@@ -37,20 +37,21 @@ dotenv.config();
       synchronize: true,
     }),
     UserModule,
-    CategoryModule,
-    TermsModule,
-    QuizModule,
+    // CategoryModule,
+    // TermsModule,
+    // QuizModule,
     GroupsModule,
     UseractivitiesModule,
     UserGroupChatModule,
-    QuestionsModule,
+    // QuestionsModule,
     CountryModule,
     LiveOpsModule,
     PlayerProgressModule,
     EconomyModule,
+    ChatModule,
   ],
   controllers: [AppController],
-  providers: [AppService, GoogleStrategy, ChatGateway, AIService],
+  providers: [AppService, GoogleStrategy, /*AIService*/],
 })
 export class AppModule { }
 

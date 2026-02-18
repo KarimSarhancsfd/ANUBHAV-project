@@ -10,6 +10,8 @@ import { Transaction } from './entities/transaction.entity';
 import { Purchase } from './entities/purchase.entity';
 import { InventoryItem } from './entities/inventory-item.entity';
 
+import { ChatModule } from '../chat/chat.module';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -18,6 +20,7 @@ import { InventoryItem } from './entities/inventory-item.entity';
       Purchase,
       InventoryItem,
     ]),
+    ChatModule,
   ],
   controllers: [EconomyController],
   providers: [

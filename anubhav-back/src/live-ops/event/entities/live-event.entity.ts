@@ -23,6 +23,7 @@ export enum EventType {
   GRANT_XP = 'grant_xp',
   MODIFY_STAT = 'modify_stat',
   UNLOCK_ACHIEVEMENT = 'unlock_achievement',
+  GRANT_CURRENCY = 'grant_currency',
   CUSTOM = 'custom',
 }
 

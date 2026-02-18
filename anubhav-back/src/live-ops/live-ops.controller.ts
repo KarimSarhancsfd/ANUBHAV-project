@@ -1,9 +1,14 @@
-import { Controller, Get, Post, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { LiveOpsService } from './live-ops.service';
+import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
+import { RolesGuard } from '../auth/guard/roles.guard';
+import { Role } from '../auth/decorator/roles.decorator';
 
 @ApiTags('LiveOps')
 @Controller('live-ops')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Role('admin')
 export class LiveOpsController {
   constructor(private readonly liveOpsService: LiveOpsService) {}
 

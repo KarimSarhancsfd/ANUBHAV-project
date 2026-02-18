@@ -1,4 +1,4 @@
-import { IsEnum, IsNumber, IsString, IsOptional, Min } from 'class-validator';
+import { IsString, IsNumber, IsEnum, Min, IsOptional, IsNotEmpty } from 'class-validator';
 import { CurrencyType, TransactionType } from '../enums/economy.enums';
 
 export class AddCurrencyDto {
@@ -58,14 +58,19 @@ export class VerifyPaymentDto {
 
 export class PurchaseItemDto {
   @IsString()
+  @IsNotEmpty()
   itemId: string;
 
   @IsNumber()
-  @Min(1)
+  @Min(0)
   price: number;
 
   @IsEnum(CurrencyType)
   currencyType: CurrencyType;
+
+  @IsString()
+  @IsOptional()
+  idempotencyKey?: string;
 
   @IsOptional()
   metadata?: Record<string, any>;
