@@ -18,9 +18,7 @@ import { CountryModule } from './country/country.module';
 import { LiveOpsModule } from './live-ops/live-ops.module';
 import { PlayerProgressModule } from './player-progress/player-progress.module';
 import { EconomyModule } from './economy/economy.module';
-
-
-
+import { CommonModule } from './common/common.module';
 
 dotenv.config();
 
@@ -34,8 +32,31 @@ dotenv.config();
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
+
+      // PERF: Keep synchronize:true for dev convenience.
+      // ⚠️ PRODUCTION: Set to false and use TypeORM migrations instead.
       synchronize: true,
+
+      // PERF: Set connection pool limits. Default is 10 but explicit config
+      // ensures predictable behaviour under concurrent load.
+      extra: {
+        connectionLimit: 10,
+      },
+
+      // PERF: Log queries that exceed 1000ms so slow queries surface
+      // immediately during development and staging.
+      maxQueryExecutionTime: 1000,
+
+      // PERF: In production, set logging to ['error'] to avoid overhead.
+      // maxQueryExecutionTime above handles slow query detection automatically.
+      logging: process.env.NODE_ENV === 'development'
+        ? ['query', 'error']
+        : ['error'],
     }),
+
+    // CommonModule exports AppCacheService globally — used across all modules
+    CommonModule,
+
     UserModule,
     // CategoryModule,
     // TermsModule,
@@ -54,4 +75,3 @@ dotenv.config();
   providers: [AppService, GoogleStrategy, /*AIService*/],
 })
 export class AppModule { }
-

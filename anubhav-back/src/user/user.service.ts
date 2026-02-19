@@ -23,7 +23,9 @@ export class UserService {
   async create(createUserDto: CreateUserDto) {
     try {
       const { password, ...otherData } = createUserDto
-      const hashPassword = await bcrypt.hash(password, 10)
+      // PERF: Read saltRounds from env — configurable per environment (default 10).
+      const saltRounds = parseInt(process.env.BCRYPT_ROUNDS || '10', 10);
+      const hashPassword = await bcrypt.hash(password, saltRounds)
       const newUser = this.userRepository.create({
         password: hashPassword,
         ...otherData
@@ -53,11 +55,17 @@ export class UserService {
     }
   }
 
-  async findAll() {
+  async findAll(limit = 20, offset = 0) {
     try {
-      const result = await this.userRepository.find();
+      // PERF: Always paginate — unbounded findAll() can return thousands of rows
+      // and cause high memory usage and slow serialization. Default limit is 20.
+      const [result, total] = await this.userRepository.findAndCount({
+        take: Math.min(limit, 100), // PERF: Hard cap at 100 to prevent abuse
+        skip: offset,
+        order: { id: 'ASC' },
+      });
       return this.responce.success(SuccessStatusCodesEnum.Ok,
-        'all user fetched successfully', result)
+        'all user fetched successfully', { data: result, total, limit, offset })
     } catch (error) {
       return this.responce.error(ErrorStatusCodesEnum.BadRequest, error.message)
     }

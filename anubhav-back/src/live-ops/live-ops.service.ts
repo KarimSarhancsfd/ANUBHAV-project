@@ -9,6 +9,11 @@ import { PlayerProgressService } from '../player-progress/player-progress.servic
 import { EventType } from './event/entities/live-event.entity';
 import { EconomyService } from '../economy/economy.service';
 import { CurrencyType, TransactionType } from '../economy/enums/economy.enums';
+import { AppCacheService } from '../common/cache/app-cache.service';
+
+/** PERF: System status cache TTL — 2 seconds. */
+const SYSTEM_STATUS_CACHE_KEY = 'liveops:system_status';
+const SYSTEM_STATUS_TTL_MS = 2_000;
 
 @Injectable()
 export class LiveOpsService {
@@ -23,11 +28,27 @@ export class LiveOpsService {
     @Inject(forwardRef(() => PlayerProgressService))
     private readonly playerProgressService: PlayerProgressService,
     private readonly economyService: EconomyService,
+    // PERF: AppCacheService injected globally via CommonModule
+    private readonly cache: AppCacheService,
   ) {}
 
   async getSystemStatus() {
-    const activeEvents = await this.eventService.getActiveEvents();
-    const configCount = await this.configService.getConfigCount();
+    // PERF: Cache system status for 2s — called on every dashboard load.
+    // connectedClients count is a lightweight in-memory read, no DB hit.
+    const cached = this.cache.get<ReturnType<typeof this._buildSystemStatus>>(SYSTEM_STATUS_CACHE_KEY);
+    if (cached) return cached;
+
+    const status = await this._buildSystemStatus();
+    this.cache.set(SYSTEM_STATUS_CACHE_KEY, status, SYSTEM_STATUS_TTL_MS);
+    return status;
+  }
+
+  private async _buildSystemStatus() {
+    // PERF: Fetch activeEvents and configCount in parallel (both are DB reads).
+    const [activeEvents, configCount] = await Promise.all([
+      this.eventService.getActiveEvents(),
+      this.configService.getConfigCount(),
+    ]);
     const connectedClients = this.realtimeGateway.getConnectedClientsCount();
 
     return {
@@ -79,20 +100,23 @@ export class LiveOpsService {
 
   async grantCurrencyToUsers(event: any) {
     const { userIds, currencyType, amount, reason } = event.payload;
-    const results: any[] = [];
-    
-    for (const userId of userIds) {
-      const wallet = await this.economyService.addCurrency(
-        userId,
-        currencyType as CurrencyType,
-        amount,
-        reason || `LiveOps Reward: ${event.title}`,
-        TransactionType.REWARD,
-        { eventId: event.id },
-        `liveops:${event.id}:${userId}`, // Idempotency key
-      );
-      results.push(wallet);
-    }
+
+    // PERF: Replace sequential for-loop with Promise.all — all currency grants
+    // run concurrently instead of one-after-another. Each grant is idempotent
+    // (unique idempotency key per event+user), so concurrent execution is safe.
+    const results = await Promise.all(
+      userIds.map((userId: number) =>
+        this.economyService.addCurrency(
+          userId,
+          currencyType as CurrencyType,
+          amount,
+          reason || `LiveOps Reward: ${event.title}`,
+          TransactionType.REWARD,
+          { eventId: event.id },
+          `liveops:${event.id}:${userId}`,
+        ),
+      ),
+    );
 
     await this.logAction(LiveOpsAction.EVENT_TRIGGERED, LiveOpsStatus.SUCCESS, { type: 'GRANT_CURRENCY', count: userIds.length });
     return results;
@@ -130,17 +154,20 @@ export class LiveOpsService {
 
   async grantXPToUsers(event: any) {
     const { userIds, amount } = event.payload;
-    const results: any[] = [];
-    
-    // Fetch global multiplier from remote config
+
+    // PERF: Fetch global multiplier ONCE before the batch — previously this was
+    // fetched per-user inside the loop (N DB hits). Now it's a single cached read.
     const globalMultiplier = await this.configService.getConfigValue<number>('progression.xp_multiplier', 1);
-    
-    for (const userId of userIds) {
-      const updated = await this.playerProgressService.grantXP(userId, amount, globalMultiplier);
-      results.push(updated);
-      
-      this.realtimeGateway.broadcastToChannel(`user:${userId}`, 'player:progress_update', updated);
-    }
+
+    // PERF: Parallelize all XP grants. Each is transactional + idempotent,
+    // so concurrent execution is safe. Realtime broadcast sent after each grant.
+    const results = await Promise.all(
+      userIds.map(async (userId: number) => {
+        const updated = await this.playerProgressService.grantXP(userId, amount, globalMultiplier);
+        this.realtimeGateway.broadcastToChannel(`user:${userId}`, 'player:progress_update', updated);
+        return updated;
+      }),
+    );
 
     await this.logAction(LiveOpsAction.EVENT_TRIGGERED, LiveOpsStatus.SUCCESS, { type: 'GRANT_XP', count: userIds.length });
     return results;

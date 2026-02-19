@@ -131,7 +131,11 @@ export class EconomyService {
         where: { idempotencyKey },
       });
       if (existingTx) {
-        return this.getOrCreateWallet(userId);
+        // PERF-FIX: Previously called getOrCreateWallet() here which uses the main
+        // repository, outside the active transaction's EntityManager context — breaking
+        // transaction isolation. Now correctly reads wallet via the provided manager.
+        const existingWallet = await manager.findOne(Wallet, { where: { userId } });
+        return existingWallet ?? (await this.getOrCreateWallet(userId));
       }
     }
 
@@ -261,7 +265,9 @@ export class EconomyService {
         where: { idempotencyKey },
       });
       if (existingTx) {
-        return this.getOrCreateWallet(userId);
+        // PERF-FIX: Use manager to stay within transaction context on idempotency hit.
+        const existingWallet = await manager.findOne(Wallet, { where: { userId } });
+        return existingWallet ?? (await this.getOrCreateWallet(userId));
       }
     }
 

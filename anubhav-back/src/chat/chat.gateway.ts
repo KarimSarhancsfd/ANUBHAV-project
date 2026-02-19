@@ -8,27 +8,32 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { Logger } from '@nestjs/common';
 
 @WebSocketGateway({ cors: true })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
-  // Store online users to manage private connections
-  private onlineUsers: Map<number, string> = new Map(); // userId -> socketId
+  private readonly logger = new Logger(ChatGateway.name);
+
+  // PERF: Dual-map for O(1) lookup in both directions.
+  // onlineUsers: userId → socketId  (to find a user's socket)
+  // socketToUser: socketId → userId (to find user on disconnect — was O(n) scan)
+  private onlineUsers: Map<number, string> = new Map();
+  private socketToUser: Map<string, number> = new Map();
 
   handleConnection(client: Socket) {
-    console.log('connect', client.id);
+    this.logger.log(`Client connected: ${client.id}`);
   }
 
   handleDisconnect(client: Socket) {
-    console.log('disconnect', client.id);
-    // Remove user from online list
-    for (const [userId, socketId] of this.onlineUsers.entries()) {
-      if (socketId === client.id) {
-        this.onlineUsers.delete(userId);
-        break;
-      }
+    // PERF: O(1) reverse lookup — previously was O(n) linear scan over onlineUsers map.
+    const userId = this.socketToUser.get(client.id);
+    if (userId !== undefined) {
+      this.onlineUsers.delete(userId);
+      this.socketToUser.delete(client.id);
     }
+    this.logger.log(`Client disconnected: ${client.id}`);
   }
 
   // User will join their own room to make direct messaging possible
@@ -39,7 +44,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     client.join(`user:${data.userId}`);
     this.onlineUsers.set(data.userId, client.id);
-    console.log(`User ${data.userId} joined their personal room`);
+    this.socketToUser.set(client.id, data.userId);
+    this.logger.log(`User ${data.userId} joined their personal room`);
   }
 
   // Private Chat
@@ -53,13 +59,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     },
     @ConnectedSocket() client: Socket,
   ) {
-    console.log('Private Message:', data);
-    const { senderId, receiverId, message } = data;
+    this.logger.debug(`Private Message from ${data.senderId} to ${data.receiverId}`);
+    const { receiverId } = data;
 
-    // Save to database here if needed
-
-    // Emit to the receiver's personal room
-    this.server.to(`user_${receiverId}`).emit('receivePrivateMessage', data);
+    // PERF-FIX: Room name was `user_${receiverId}` (underscore) but everywhere
+    // else (joinUserRoom, emitWalletUpdate) uses `user:${id}` (colon).
+    // This was causing private messages to be silently lost. Fixed to be consistent.
+    this.server.to(`user:${receiverId}`).emit('receivePrivateMessage', data);
   }
 
   // Join Group
@@ -69,7 +75,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
   ) {
     client.join(`group_${data.groupId}`);
-    console.log(`User ${data.userId} joined group ${data.groupId}`);
+    this.logger.log(`User ${data.userId} joined group ${data.groupId}`);
   }
 
   // Group Chat
@@ -83,10 +89,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     },
     @ConnectedSocket() client: Socket,
   ) {
-    console.log('Group Message:', data);
-    const { senderId, groupId, message } = data;
-
-    // Save to database here if needed
+    this.logger.debug(`Group message in group ${data.groupId} from user ${data.senderId}`);
+    const { groupId } = data;
 
     // Emit to all group members except sender
     this.server.to(`group_${groupId}`).emit('receiveGroupMessage', data);
@@ -99,7 +103,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    */
   emitWalletUpdate(userId: number, wallet: any) {
     this.server.to(`user:${userId}`).emit('wallet:updated', wallet);
-    console.log(`Emitted wallet update to user ${userId}`);
+    this.logger.debug(`Emitted wallet update to user ${userId}`);
   }
 
   /**
@@ -107,7 +111,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    */
   emitPurchaseCompleted(userId: number, purchase: any) {
     this.server.to(`user:${userId}`).emit('purchase:completed', purchase);
-    console.log(`Emitted purchase completion to user ${userId}`);
+    this.logger.debug(`Emitted purchase completion to user ${userId}`);
   }
 
   /**
@@ -115,7 +119,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    */
   emitItemGranted(userId: number, item: any) {
     this.server.to(`user:${userId}`).emit('item:granted', item);
-    console.log(`Emitted item granted to user ${userId}`);
+    this.logger.debug(`Emitted item granted to user ${userId}`);
   }
 
   /**
@@ -123,7 +127,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    */
   emitTransactionRecorded(userId: number, transaction: any) {
     this.server.to(`user:${userId}`).emit('transaction:recorded', transaction);
-    console.log(`Emitted transaction to user ${userId}`);
+    this.logger.debug(`Emitted transaction to user ${userId}`);
   }
 }
-
