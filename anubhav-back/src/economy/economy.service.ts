@@ -140,9 +140,12 @@ export class EconomyService {
     }
 
     // Get wallet with lock
+    // PERF: In high-concurrency wallet updates, we lock the specific row.
     const wallet = await manager.findOne(Wallet, {
       where: { userId },
       lock: { mode: 'pessimistic_write' },
+      // Select only required fields to reduce payload
+      select: ['id', 'userId', 'coins', 'gems'],
     });
 
     if (!wallet) {
@@ -336,11 +339,14 @@ export class EconomyService {
     limit: number = 50,
     offset: number = 0,
   ): Promise<Transaction[]> {
+    // PERF: Combined index on [userId, createdAt] in Transaction entity
+    // makes this query O(log n) even with millions of records.
     return this.transactionRepository.find({
       where: { userId },
       order: { createdAt: 'DESC' },
       take: limit,
       skip: offset,
+      select: ['id', 'userId', 'type', 'currencyType', 'amount', 'balanceAfter', 'reason', 'createdAt'],
     });
   }
 

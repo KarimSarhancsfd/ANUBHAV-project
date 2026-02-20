@@ -217,6 +217,7 @@ export class PurchaseService {
       order: { createdAt: 'DESC' },
       take: limit,
       skip: offset,
+      select: ['id', 'userId', 'productId', 'amount', 'currency', 'status', 'createdAt'],
     });
   }
 

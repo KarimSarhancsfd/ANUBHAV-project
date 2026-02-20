@@ -22,33 +22,48 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private onlineUsers: Map<number, string> = new Map();
   private socketToUser: Map<string, number> = new Map();
 
+  /**
+   * PERF: handleConnection — No heavy lifting here to keep event loop free.
+   */
   handleConnection(client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
   }
 
+  /**
+   * PERF: handleDisconnect — O(1) cleanup.
+   * Ensures no memory leaks when players drop frequently.
+   */
   handleDisconnect(client: Socket) {
-    // PERF: O(1) reverse lookup — previously was O(n) linear scan over onlineUsers map.
     const userId = this.socketToUser.get(client.id);
     if (userId !== undefined) {
       this.onlineUsers.delete(userId);
       this.socketToUser.delete(client.id);
+      
+      // Cleanup: leave all rooms explicitly (though socket.io usually handles this)
+      client.leave(`user:${userId}`);
     }
     this.logger.log(`Client disconnected: ${client.id}`);
   }
 
-  // User will join their own room to make direct messaging possible
+  /**
+   * Subscribe to personal room.
+   * Consistent naming: `user:${id}`
+   */
   @SubscribeMessage('joinUserRoom')
   handleJoinUserRoom(
     @MessageBody() data: { userId: number },
     @ConnectedSocket() client: Socket,
   ) {
-    client.join(`user:${data.userId}`);
+    const roomName = `user:${data.userId}`;
+    client.join(roomName);
     this.onlineUsers.set(data.userId, client.id);
     this.socketToUser.set(client.id, data.userId);
-    this.logger.log(`User ${data.userId} joined their personal room`);
+    this.logger.log(`User ${data.userId} joined room ${roomName}`);
   }
 
-  // Private Chat
+  /**
+   * Private Chat — Optimized Room Broadcast.
+   */
   @SubscribeMessage('privateMessage')
   handlePrivateMessage(
     @MessageBody()
@@ -59,26 +74,27 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     },
     @ConnectedSocket() client: Socket,
   ) {
-    this.logger.debug(`Private Message from ${data.senderId} to ${data.receiverId}`);
     const { receiverId } = data;
-
-    // PERF-FIX: Room name was `user_${receiverId}` (underscore) but everywhere
-    // else (joinUserRoom, emitWalletUpdate) uses `user:${id}` (colon).
-    // This was causing private messages to be silently lost. Fixed to be consistent.
+    // PERF: Emit only to the specific room.
     this.server.to(`user:${receiverId}`).emit('receivePrivateMessage', data);
   }
 
-  // Join Group
+  /**
+   * Join Group — Consistency Check.
+   */
   @SubscribeMessage('joinGroup')
   handleJoinGroup(
     @MessageBody() data: { groupId: number; userId: number },
     @ConnectedSocket() client: Socket,
   ) {
-    client.join(`group_${data.groupId}`);
-    this.logger.log(`User ${data.userId} joined group ${data.groupId}`);
+    const groupRoom = `group:${data.groupId}`;
+    client.join(groupRoom);
+    this.logger.log(`User ${data.userId} joined group ${groupRoom}`);
   }
 
-  // Group Chat
+  /**
+   * Group Chat — Multi-room broadcast.
+   */
   @SubscribeMessage('groupMessage')
   handleGroupMessage(
     @MessageBody()
@@ -89,44 +105,45 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     },
     @ConnectedSocket() client: Socket,
   ) {
-    this.logger.debug(`Group message in group ${data.groupId} from user ${data.senderId}`);
-    const { groupId } = data;
-
-    // Emit to all group members except sender
-    this.server.to(`group_${groupId}`).emit('receiveGroupMessage', data);
+    const groupRoom = `group:${data.groupId}`;
+    // PERF: Broadcast to group room.
+    this.server.to(groupRoom).emit('receiveGroupMessage', data);
   }
 
   // ==================== ECONOMY REAL-TIME EVENTS ====================
 
   /**
    * Emit wallet update to user
+   * PERF: High-frequency event. Avoid heavy logging.
    */
   emitWalletUpdate(userId: number, wallet: any) {
+    if (!userId) return;
     this.server.to(`user:${userId}`).emit('wallet:updated', wallet);
-    this.logger.debug(`Emitted wallet update to user ${userId}`);
   }
 
   /**
    * Emit purchase completion to user
    */
   emitPurchaseCompleted(userId: number, purchase: any) {
+    if (!userId) return;
     this.server.to(`user:${userId}`).emit('purchase:completed', purchase);
-    this.logger.debug(`Emitted purchase completion to user ${userId}`);
+    this.logger.log(`Purchase completed for user ${userId}`);
   }
 
   /**
    * Emit item granted to user
    */
   emitItemGranted(userId: number, item: any) {
+    if (!userId) return;
     this.server.to(`user:${userId}`).emit('item:granted', item);
-    this.logger.debug(`Emitted item granted to user ${userId}`);
+    this.logger.log(`Item granted to user ${userId}`);
   }
 
   /**
    * Emit transaction recorded to user
    */
   emitTransactionRecorded(userId: number, transaction: any) {
+    if (!userId) return;
     this.server.to(`user:${userId}`).emit('transaction:recorded', transaction);
-    this.logger.debug(`Emitted transaction to user ${userId}`);
   }
 }

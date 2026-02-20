@@ -33,25 +33,24 @@ dotenv.config();
       database: process.env.DB_NAME,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
 
-      // PERF: Keep synchronize:true for dev convenience.
-      // ⚠️ PRODUCTION: Set to false and use TypeORM migrations instead.
-      synchronize: true,
+      // PERF: Disable synchronize in production to prevent accidental schema drops.
+      // Use TypeORM migrations for production schema changes.
+      synchronize: process.env.NODE_ENV === 'development',
 
-      // PERF: Set connection pool limits. Default is 10 but explicit config
-      // ensures predictable behaviour under concurrent load.
+      // PERF: Increased connection pool limit from 10 to 50.
+      // Allows better handling of concurrent gaming workloads.
       extra: {
-        connectionLimit: 10,
+        connectionLimit: 50,
       },
 
-      // PERF: Log queries that exceed 1000ms so slow queries surface
-      // immediately during development and staging.
-      maxQueryExecutionTime: 1000,
+      // PERF: Lowered slow query execution time from 1000ms to 200ms.
+      // Gaming backends requires much lower latency floor.
+      maxQueryExecutionTime: 200,
 
-      // PERF: In production, set logging to ['error'] to avoid overhead.
-      // maxQueryExecutionTime above handles slow query detection automatically.
+      // PERF: Strict logging in production to avoid I/O overhead.
       logging: process.env.NODE_ENV === 'development'
-        ? ['query', 'error']
-        : ['error'],
+        ? ['query', 'error', 'warn']
+        : ['error', 'warn'],
     }),
 
     // CommonModule exports AppCacheService globally — used across all modules

@@ -2,15 +2,23 @@ import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { ValidationPipe, Logger } from '@nestjs/common';
-import * as compression from 'compression';
+import compression from 'compression';
+import helmet from 'helmet';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);
 
   // PERF: Enable gzip/brotli compression on all responses.
-  // Reduces payload size by 40-60% for JSON-heavy API responses.
   app.use(compression());
+
+  // SECURITY: Set security-related HTTP headers.
+  // Protects against common vulnerabilities like XSS, Clickjacking, etc.
+  app.use(helmet({
+    contentSecurityPolicy: false, // Set to false to avoid breaking Swagger/Angular in hybrid environments
+    crossOriginEmbedderPolicy: false,
+  }));
 
   // PERF: CORS — keep origin:true for broad dev compatibility.
   // In production, replace with explicit allowed origin(s) for security.
@@ -29,6 +37,9 @@ async function bootstrap() {
       forbidNonWhitelisted: true, // PERF: reject unknown payload fields immediately
     }),
   );
+
+  // STABILITY: Global Exception Filter
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   const config = new DocumentBuilder()
     .setTitle('ANUBHAV Gaming Studio API')
