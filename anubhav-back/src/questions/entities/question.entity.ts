@@ -10,6 +10,7 @@ export class Question {
     @JoinColumn({ name: 'quiz_id'})
     quiz_id: Quiz
 
+    /** @deprecated Use eventTrigger for gaming context */
     @Column()
     question: string
 
@@ -28,9 +29,17 @@ export class Question {
     @Column()
     user_answer: string
 
+    /** @deprecated Use payloadSignature for gaming context */
     @Column()
     correct_answer_index: number
 
+    /** @deprecated Use challengeWeight for gaming context */
     @Column()
     mark_value!: number
+
+    // --- Semantic Aliases for Gaming Architecture ---
+
+    get eventTrigger(): string { return this.question; }
+    get payloadSignature(): number { return this.correct_answer_index; }
+    get challengeWeight(): number { return this.mark_value; }
 }

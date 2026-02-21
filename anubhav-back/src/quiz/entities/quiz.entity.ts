@@ -23,6 +23,14 @@ export enum QuizLevel {
   Hard = 'hard',
   Random = 'random',
 }
+
+export enum MatchMode {
+  Solo = 'solo',
+  PvP = 'pvp',
+  Event = 'event',
+  Ranked = 'ranked',
+}
+
 @Entity()
 export class Quiz {
   @PrimaryGeneratedColumn()
@@ -35,6 +43,7 @@ export class Quiz {
   @Column()
   name!: string;
 
+  /** @deprecated Use baseReward for gaming context */
   @Column()
   mark!: number;
 
@@ -44,12 +53,16 @@ export class Quiz {
   @Column()
   question_level!: QuizLevel;
 
+  @Column({ type: 'enum', enum: MatchMode, default: MatchMode.Solo })
+  mode: MatchMode;
+
   @Column()
   status!: boolean;
 
   @Column()
   total_questions!: number;
 
+  /** @deprecated Use sessionDuration for gaming context */
   @Column()
   total_time!: Date;
 
@@ -70,4 +83,11 @@ export class Quiz {
 
   @OneToMany(() => QuizResult, (quizResult) => quizResult.quiz)
   results: QuizResult[];
+
+  // --- Semantic Aliases for Gaming Architecture ---
+
+  get matchName(): string { return this.name; }
+  get baseReward(): number { return this.mark; }
+  get sessionDuration(): Date { return this.total_time; }
+  get challengeCount(): number { return this.total_questions; }
 }

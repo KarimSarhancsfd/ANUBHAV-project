@@ -4,47 +4,49 @@ import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-val
 export class CreateQuestionDto {
   @IsNumber()
   @IsNotEmpty()
-  @ApiProperty({ example: 1, description: 'quiz_id' })
+  @ApiProperty({ example: 1, description: 'ID of the Match/Session (Legacy Quiz)' })
   quiz_id: number;
 
+  /** @deprecated Use eventTrigger for gaming context */
   @IsString()
   @IsNotEmpty()
-  @ApiProperty({ example: 'question', description: 'question' })
+  @ApiProperty({ example: 'Defeat 10 enemies', description: 'Event trigger or challenge description' })
   question: string;
 
   @IsBoolean()
   @IsOptional()
-  @ApiProperty({default: false , example: true, description: 'result' })
+  @ApiProperty({ default: false, example: true, description: 'Success/Fail result state' })
   result: boolean;
 
   @IsString()
   @IsNotEmpty()
-  @ApiProperty({ example: 'type', description: 'type' })
+  @ApiProperty({ example: 'COMBAT', description: 'Challenge type (e.g., COMBAT, PUZZLE)' })
   type: string;
 
-  @IsString()
+  @IsNumber()
   @IsNotEmpty()
   @ApiProperty({
-    example: 'user_answer_index',
-    description: 'user_answer_index',
+    example: 0,
+    description: 'User selection index',
   })
   user_answer_index: number;
 
-  @IsString()
+  /** @deprecated Use payloadSignature for gaming context */
+  @IsNumber()
   @IsNotEmpty()
   @ApiProperty({
-    example: 'correct_answer_index',
-    description: 'correct_answer_index',
+    example: 1,
+    description: 'Expected payload signature or correct index',
   })
   correct_answer_index: number;
 
   @IsString()
   @IsNotEmpty()
-  @ApiProperty({ example: 'ai_answer', description: 'ai_answer' })
+  @ApiProperty({ example: 'signature_v1', description: 'Internal verification payload' })
   ai_answer: string;
 
   @IsString()
   @IsNotEmpty()
-  @ApiProperty({ example: 'user_answer', description: 'user_answer' })
+  @ApiProperty({ example: 'player_input_raw', description: 'Captured player input' })
   user_answer: string;
 }

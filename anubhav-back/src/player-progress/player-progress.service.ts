@@ -92,79 +92,87 @@ export class PlayerProgressService {
     return progress;
   }
 
-  async grantXP(userId: number, amount: number, multiplier: number = 1): Promise<PlayerProgress> {
-    const result = await this.dataSource.transaction(async (manager: EntityManager) => {
-      let progress = await manager.findOne(PlayerProgress, {
-        where: { userId },
-        lock: { mode: 'pessimistic_write' },
-      });
+  async grantXP(userId: number, amount: number, multiplier: number = 1, manager?: EntityManager): Promise<PlayerProgress> {
+    // If a manager is provided, use it (part of an external transaction).
+    // Otherwise, start a new transaction using the dataSource.
+    if (manager) {
+      return this._performGrantXP(manager, userId, amount, multiplier);
+    }
 
-      if (!progress) {
-        progress = manager.create(PlayerProgress, {
-          userId,
-          level: 1,
-          xp: 0,
-          stats: {},
-          skills: {},
-          achievements: {},
-        });
-      }
-
-      const finalAmount = Math.floor(amount * multiplier);
-      const previousLevel = progress.level;
-
-      progress.xp = Number(progress.xp) + finalAmount;
-
-      const newLevel = Math.floor(Math.sqrt(Number(progress.xp) / 100)) + 1;
-
-      let leveledUp = false;
-      if (newLevel > progress.level) {
-        this.logger.log(`User ${userId} leveled up to ${newLevel}!`);
-        progress.level = newLevel;
-        leveledUp = true;
-      }
-
-      const savedProgress = await manager.save(progress);
-
-      // Award coins for XP gained (1 coin per 10 XP)
-      const coinsAwarded = Math.floor(finalAmount / 10);
-      if (coinsAwarded > 0) {
-        await this.economyService.addCurrency(
-          userId,
-          CurrencyType.COINS,
-          coinsAwarded,
-          `XP reward: ${finalAmount} XP gained`,
-          TransactionType.REWARD,
-          { xpGained: finalAmount },
-          `xp_reward:${userId}:${savedProgress.xp}`,
-          undefined,
-          manager,
-        );
-      }
-
-      // Award bonus gems on level up (5 gems per level)
-      if (leveledUp) {
-        const levelsGained = newLevel - previousLevel;
-        const gemsAwarded = levelsGained * 5;
-        await this.economyService.addCurrency(
-          userId,
-          CurrencyType.GEMS,
-          gemsAwarded,
-          `Level up bonus: Level ${newLevel}`,
-          TransactionType.REWARD,
-          { newLevel, previousLevel },
-          `level_up:${userId}:${newLevel}`,
-          undefined,
-          manager,
-        );
-      }
-
-      return savedProgress;
+    return await this.dataSource.transaction(async (m: EntityManager) => {
+      return this._performGrantXP(m, userId, amount, multiplier);
     });
+  }
+
+  private async _performGrantXP(manager: EntityManager, userId: number, amount: number, multiplier: number = 1): Promise<PlayerProgress> {
+    let progress = await manager.findOne(PlayerProgress, {
+      where: { userId },
+      lock: { mode: 'pessimistic_write' },
+    });
+
+    if (!progress) {
+      progress = manager.create(PlayerProgress, {
+        userId,
+        level: 1,
+        xp: 0,
+        stats: {},
+        skills: {},
+        achievements: {},
+      });
+    }
+
+    const finalAmount = Math.floor(amount * multiplier);
+    const previousLevel = progress.level;
+
+    progress.xp = Number(progress.xp) + finalAmount;
+
+    const newLevel = Math.floor(Math.sqrt(Number(progress.xp) / 100)) + 1;
+
+    let leveledUp = false;
+    if (newLevel > progress.level) {
+      this.logger.log(`User ${userId} leveled up to ${newLevel}!`);
+      progress.level = newLevel;
+      leveledUp = true;
+    }
+
+    const savedProgress = await manager.save(progress);
+
+    // Award coins for XP gained (1 coin per 10 XP)
+    const coinsAwarded = Math.floor(finalAmount / 10);
+    if (coinsAwarded > 0) {
+      await this.economyService.addCurrency(
+        userId,
+        CurrencyType.COINS,
+        coinsAwarded,
+        `XP reward: ${finalAmount} XP gained`,
+        TransactionType.REWARD,
+        { xpGained: finalAmount },
+        `xp_reward:${userId}:${savedProgress.xp}`,
+        undefined,
+        manager,
+      );
+    }
+
+    // Award bonus gems on level up (5 gems per level)
+    if (leveledUp) {
+      const levelsGained = newLevel - previousLevel;
+      const gemsAwarded = levelsGained * 5;
+      await this.economyService.addCurrency(
+        userId,
+        CurrencyType.GEMS,
+        gemsAwarded,
+        `Level up bonus: Level ${newLevel}`,
+        TransactionType.REWARD,
+        { newLevel, previousLevel },
+        `level_up:${userId}:${newLevel}`,
+        undefined,
+        manager,
+      );
+    }
 
     // PERF: Invalidate cached progress after any XP grant so subsequent reads are fresh.
     this.cache.invalidate(progressCacheKey(userId));
-    return result;
+    return savedProgress;
   }
 
   async modifyStat(userId: number, statKey: string, value: any): Promise<PlayerProgress> {

@@ -9,9 +9,11 @@ export class Country {
   @OneToMany(() => User, (user) => user.country_id)
   user_id: User[]
 
+  /** @deprecated Use regionName for gaming context */
   @Column()
   name!: string;
 
+  /** @deprecated Use regionImageUrl for gaming context */
   @Column()
   imageUrl!: string;
 
@@ -26,4 +28,9 @@ export class Country {
 
   @OneToMany(() => User, user => user.country_id)
   users: User[]
+
+  // --- Semantic Aliases for Gaming Architecture ---
+
+  get regionName(): string { return this.name; }
+  get regionImageUrl(): string { return this.imageUrl; }
 }
