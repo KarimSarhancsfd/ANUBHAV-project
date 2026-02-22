@@ -1,6 +1,6 @@
-import { Question } from 'src/questions/entities/question.entity';
+import { ChallengeUnit } from 'src/challenge-units/entities/challenge-unit.entity';
 import { User } from 'src/user/entities/user.entity';
-import { QuizResult } from './quiz-result.entity';
+import { MatchResult } from './match-result.entity';
 import {
   Column,
   Entity,
@@ -32,7 +32,7 @@ export enum MatchMode {
 }
 
 @Entity()
-export class Quiz {
+export class MatchSession {
   @PrimaryGeneratedColumn()
   id!: number;
 
@@ -78,11 +78,11 @@ export class Quiz {
   @Column()
   deleted_at!: Date;
 
-  @OneToMany(() => Question, (question) => question.quiz_id)
-  questions: Question[];
+  @OneToMany(() => ChallengeUnit, (question) => question.quiz_id)
+  questions: ChallengeUnit[];
 
-  @OneToMany(() => QuizResult, (quizResult) => quizResult.quiz)
-  results: QuizResult[];
+  @OneToMany(() => MatchResult, (quizResult) => quizResult.quiz)
+  results: MatchResult[];
 
   // --- Semantic Aliases for Gaming Architecture ---
 

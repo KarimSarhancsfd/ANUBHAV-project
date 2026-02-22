@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, Index } from 'typeorm';
-import { Quiz } from './quiz.entity';
+import { MatchSession } from './match-session.entity';
 import { User } from '../../user/entities/user.entity';
 
 export interface ResultDetail {
@@ -12,15 +12,15 @@ export interface ResultDetail {
 
 @Entity()
 @Index(['user', 'quiz']) // Optimization for user's history in a specific match type
-export class QuizResult {
+export class MatchResult {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Quiz, (quiz) => quiz.results)
+  @ManyToOne(() => MatchSession, (quiz) => quiz.results)
   @Index() // Match filtering
-  quiz: Quiz;
+  quiz: MatchSession;
 
-  @ManyToOne(() => User, (user) => user.quizResults)
+  @ManyToOne(() => User, (user) => user.matchResults)
   @Index() // User match history lookup
   user: User;
 

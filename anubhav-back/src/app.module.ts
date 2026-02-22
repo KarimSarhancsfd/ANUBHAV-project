@@ -1,76 +1,65 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import * as dotenv from 'dotenv';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 // import { CategoryModule } from './category/category.module';
 // import { TermsModule } from './terms/terms.module';
 import { UserModule } from './user/user.module';
-// import { QuizModule } from './quiz/quiz.module';
+import { MatchSessionsModule } from './match-sessions/match-sessions.module';
 import { GroupsModule } from './groups/groups.module';
 import { UseractivitiesModule } from './useractivities/useractivities.module';
 import { GoogleStrategy } from './google.strategy';
 import { UserGroupChatModule } from './user_group_chat/user_group_chat.module';
-// import { QuestionsModule } from './questions/questions.module';
+// import { LoggerMiddleware } from './middleware/logger.middleware';
+import { ChallengeUnitsModule } from './challenge-units/challenge-units.module';
 import { ChatModule } from './chat/chat.module';
 import { CountryModule } from './country/country.module';
 // import { AIService } from './ai/ai.service';
+// import { AIController } from './ai/ai.controller';
+import { AuthModule } from './auth/auth.module';
+import { NotificationsModule } from './notification/notifications.module';
 import { LiveOpsModule } from './live-ops/live-ops.module';
 import { PlayerProgressModule } from './player-progress/player-progress.module';
 import { EconomyModule } from './economy/economy.module';
-import { CommonModule } from './common/common.module';
-
-dotenv.config();
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.DB_HOST,
-      port: parseInt(process.env.DB_PORT || '3306', 10),
+      port: parseInt(process.env.DB_PORT || '3306'),
       username: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-
-      // PERF: Disable synchronize in production to prevent accidental schema drops.
-      // Use TypeORM migrations for production schema changes.
-      synchronize: process.env.NODE_ENV === 'development',
-
-      // PERF: Increased connection pool limit from 10 to 50.
-      // Allows better handling of concurrent gaming workloads.
+      synchronize: process.env.NODE_ENV === 'development', // Critical for safety
       extra: {
-        connectionLimit: 50,
+        connectionLimit: 50, // Optimal for gaming scale
       },
-
-      // PERF: Lowered slow query execution time from 1000ms to 200ms.
-      // Gaming backends requires much lower latency floor.
-      maxQueryExecutionTime: 200,
-
-      // PERF: Strict logging in production to avoid I/O overhead.
-      logging: process.env.NODE_ENV === 'development'
-        ? ['query', 'error', 'warn']
-        : ['error', 'warn'],
     }),
-
-    // CommonModule exports AppCacheService globally — used across all modules
-    CommonModule,
-
+    AuthModule,
     UserModule,
     // CategoryModule,
     // TermsModule,
-    // QuizModule,
+    MatchSessionsModule,
     GroupsModule,
     UseractivitiesModule,
     UserGroupChatModule,
-    // QuestionsModule,
+    ChallengeUnitsModule,
     CountryModule,
     LiveOpsModule,
     PlayerProgressModule,
     EconomyModule,
+    NotificationsModule,
     ChatModule,
   ],
   controllers: [AppController],
-  providers: [AppService, GoogleStrategy, /*AIService*/],
+  providers: [AppService, GoogleStrategy],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    // consumer.apply(LoggerMiddleware).forRoutes('*');
+  }
+}

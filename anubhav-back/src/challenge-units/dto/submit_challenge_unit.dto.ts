@@ -1,12 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsArray, IsNotEmpty, IsNumber, IsString } from 'class-validator';
-import { Question } from '../entities/question.entity';
+import { ChallengeUnit } from '../entities/challenge-unit.entity';
 
-export class SubmitQuestionDto {
+export class SubmitChallengeUnitDto {
     @IsNumber()
     @IsNotEmpty()
-    @ApiProperty({ example: 'question_id', description: 'question_id' })
-    question_id: Question;
+    @ApiProperty({ example: 'question_id', description: 'challenge_id' })
+    question_id: ChallengeUnit;
 
     @IsNumber()
     @IsNotEmpty()
@@ -22,6 +22,6 @@ export class SubmitQuestionDto {
 export class SubmitQuestionsDto {
     @IsNotEmpty()
     @IsArray()
-    @ApiProperty({ type: [SubmitQuestionDto] })
-    questions: SubmitQuestionDto[];
+    @ApiProperty({ type: [SubmitChallengeUnitDto] })
+    questions: SubmitChallengeUnitDto[];
 }

@@ -1,4 +1,4 @@
-import { Quiz } from 'src/quiz/entities/quiz.entity';
+import { MatchSession } from 'src/match-sessions/entities/match-session.entity';
 import { Notification } from 'src/notification/entities/notification.entity';
 import { UserGroupChat } from 'src/user_group_chat/entities/user_group_chat.entity';
 import { UserActivities } from 'src/useractivities/entities/useractivities.entity';
@@ -15,7 +15,7 @@ import {
 } from 'typeorm';
 import { Country } from 'src/country/entities/country.entity';
 import { Category } from 'src/category/entities/category.entity';
-import { QuizResult } from '../../quiz/entities/quiz-result.entity';
+import { MatchResult } from '../../match-sessions/entities/match-result.entity';
 
 @Entity()
 export class User {
@@ -113,14 +113,14 @@ export class User {
   @DeleteDateColumn({ nullable: true })
   deletedAt?: Date;
 
-  @OneToMany(() => Quiz, (quiz) => quiz.user_id)
-  quizzes!: Quiz[];
+  @OneToMany(() => MatchSession, (quiz) => quiz.user_id)
+  matchSessions!: MatchSession[];
 
   @OneToMany(() => UserActivities, (userActivities) => userActivities.user_id)
   userActivities!: UserActivities[];
 
   @OneToMany(() => Notification, (notification) => notification.user_id)
-  notifications!: Notification;
+  notifications!: Notification[];
 
   @OneToMany(() => UserGroupChat, (userGroupChat) => userGroupChat.user_id)
   usergroupchat!: UserGroupChat;
@@ -128,6 +128,6 @@ export class User {
   @OneToMany(() => Category, (category) => category.user_id)
   category!: Category;
 
-  @OneToMany(() => QuizResult, (quizResult) => quizResult.user)
-  quizResults: QuizResult[];
+  @OneToMany(() => MatchResult, (quizResult) => quizResult.user)
+  matchResults: MatchResult[];
 }

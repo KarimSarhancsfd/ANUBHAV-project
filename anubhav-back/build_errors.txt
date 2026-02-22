@@ -1,0 +1,36 @@
+
+> learn-back@0.0.1 build
+> nest build
+
+[96msrc/app.module.ts[0m:[93m3[0m:[93m30[0m - [91merror[0m[90m TS2307: [0mCannot find module '@nestjs/config' or its corresponding type declarations.
+
+[7m3[0m import { ConfigModule } from '@nestjs/config';
+[7m [0m [91m                             ~~~~~~~~~~~~~~~~[0m
+[96msrc/app.module.ts[0m:[93m14[0m:[93m34[0m - [91merror[0m[90m TS2307: [0mCannot find module './middleware/logger.middleware' or its corresponding type declarations.
+
+[7m14[0m import { LoggerMiddleware } from './middleware/logger.middleware';
+[7m  [0m [91m                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/app.module.ts[0m:[93m21[0m:[93m36[0m - [91merror[0m[90m TS2307: [0mCannot find module './notification/notification.module' or its corresponding type declarations.
+
+[7m21[0m import { NotificationModule } from './notification/notification.module';
+[7m  [0m [91m                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/app.module.ts[0m:[93m32[0m:[93m22[0m - [91merror[0m[90m TS2345: [0mArgument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+
+[7m32[0m       port: parseInt(process.env.DB_PORT),
+[7m  [0m [91m                     ~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/questions/dto/submit_question.dto.ts[0m:[93m3[0m:[93m26[0m - [91merror[0m[90m TS2307: [0mCannot find module '../entities/question.entity' or its corresponding type declarations.
+
+[7m3[0m import { Question } from '../entities/question.entity';
+[7m [0m [91m                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/quiz/dto/create-quiz.dto.ts[0m:[93m9[0m:[93m46[0m - [91merror[0m[90m TS2307: [0mCannot find module '../entities/quiz.entity' or its corresponding type declarations.
+
+[7m9[0m import { QuizLevel, QuizQuestionsType } from '../entities/quiz.entity';
+[7m [0m [91m                                             ~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+[96msrc/quiz/dto/create-quiz.dto.ts[0m:[93m11[0m:[93m26[0m - [91merror[0m[90m TS2307: [0mCannot find module 'src/questions/entities/question.entity' or its corresponding type declarations.
+
+[7m11[0m import { Question } from 'src/questions/entities/question.entity';
+[7m  [0m [91m                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+Found 7 error(s).
+

@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { CreateQuizDto } from './dto/create-quiz.dto';
-import { UpdateQuizDto } from './dto/update-quiz.dto';
-import { QuizResult } from './entities/quiz-result.entity';
-import {AnswerDto } from './dto/answer.dto';
+import { CreateMatchSessionDto as CreateSessionDto } from './dto/create-match-session.dto';
+import { UpdateMatchSessionDto as UpdateSessionDto } from './dto/update-match-session.dto';
+import { MatchResult } from './entities/match-result.entity';
+import { AnswerDto } from './dto/answer.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Quiz } from './entities/quiz.entity';
-import { QuestionsService } from '../questions/questions.service';
+import { MatchSession } from './entities/match-session.entity';
+import { ChallengeUnitsService } from '../challenge-units/challenge-units.service';
 import {
   ErrorStatusCodesEnum,
   Expose,
@@ -18,33 +18,38 @@ import { LiveOpsService } from '../live-ops/live-ops.service';
 import { CurrencyType, TransactionType } from '../economy/enums/economy.enums';
 
 @Injectable()
-export class QuizService {
+export class MatchSessionsService {
   constructor(
-    @InjectRepository(Quiz)
-    private quizRepo: Repository<Quiz>,
+    @InjectRepository(MatchSession)
+    private sessionRepo: Repository<MatchSession>,
     private readonly response: Expose,
-    private questionService: QuestionsService,
-    @InjectRepository(QuizResult) 
-    private resultRepo: Repository<QuizResult>,
+    private challengeUnitsService: ChallengeUnitsService,
+    @InjectRepository(MatchResult)
+    private resultRepo: Repository<MatchResult>,
     private playerProgressService: PlayerProgressService,
     private economyService: EconomyService,
     private liveOpsService: LiveOpsService,
-  ) { }
+  ) {}
 
-  async createQuiz(createQuizDto: CreateQuizDto, user: any): Promise<any> {
+  async createSession(createSessionDto: CreateSessionDto, user: any): Promise<any> {
     try {
-      const { questions, ...data } = createQuizDto
-      const newQuiz = this.quizRepo.create({
+      const { questions, ...data } = createSessionDto;
+      const newSession = this.sessionRepo.create({
         ...data,
         user_id: user.userId,
       });
-      const result = await this.quizRepo.save(newQuiz);
-      questions.map(async (question) => {
-        await this.questionService.create({ ...question, quiz_id: result.id } as any);
-      });
+      const result = await this.sessionRepo.save(newSession);
+      if (questions) {
+        questions.map(async (question) => {
+          await this.challengeUnitsService.create({
+            ...question,
+            quiz_id: result.id,
+          } as any);
+        });
+      }
       return this.response.success(
         SuccessStatusCodesEnum.Ok,
-        'quiz created successfully',
+        'match session created successfully',
         result,
       );
     } catch (error) {
@@ -55,14 +60,14 @@ export class QuizService {
     }
   }
 
-  async findAllQuizzes(): Promise<any> {
+  async findAllSessions(): Promise<any> {
     try {
-      const result = await this.quizRepo.find({
+      const result = await this.sessionRepo.find({
         relations: { questions: true },
       });
       return this.response.success(
         SuccessStatusCodesEnum.Ok,
-        'quizs fetched successfully',
+        'match sessions fetched successfully',
         result,
       );
     } catch (error) {
@@ -73,18 +78,18 @@ export class QuizService {
     }
   }
 
-  async findQuizById(id: number): Promise<any> {
+  async findSessionById(id: number): Promise<any> {
     try {
-      const quiz = await this.quizRepo.findOne({ where: { id } });
-      if (!quiz)
+      const session = await this.sessionRepo.findOne({ where: { id } });
+      if (!session)
         return this.response.error(
           ErrorStatusCodesEnum.BadRequest,
-          'quiz not found',
+          'match session not found',
         );
       return this.response.success(
         SuccessStatusCodesEnum.Ok,
-        'quiz fetched successfully',
-        quiz,
+        'match session fetched successfully',
+        session,
       );
     } catch (error) {
       return this.response.error(
@@ -94,17 +99,17 @@ export class QuizService {
     }
   }
 
-  async updateQuiz(
+  async updateSession(
     id: number,
-    updateQuizDto: UpdateQuizDto,
-  ): Promise<Quiz | any> {
+    updateSessionDto: UpdateSessionDto,
+  ): Promise<MatchSession | any> {
     try {
-      const quiz = await this.findQuizById(id);
-      this.quizRepo.merge(quiz, updateQuizDto);
-      const result = await this.quizRepo.save(quiz);
+      const session = await this.findSessionById(id);
+      this.sessionRepo.merge(session.data, updateSessionDto);
+      const result = await this.sessionRepo.save(session.data);
       return this.response.success(
         SuccessStatusCodesEnum.Ok,
-        'quiz updated successfully',
+        'match session updated successfully',
         result,
       );
     } catch (error) {
@@ -115,10 +120,14 @@ export class QuizService {
     }
   }
 
-  async removeQuiz(id: number): Promise<any> {
+  async removeSession(id: number): Promise<any> {
     try {
-      const quiz = await this.findQuizById(id);
-      await this.quizRepo.remove(quiz);
+      const session = await this.findSessionById(id);
+      await this.sessionRepo.remove(session.data);
+      return this.response.notify(
+        SuccessStatusCodesEnum.Ok,
+        'match session removed successfully',
+      );
     } catch (error) {
       return this.response.error(
         ErrorStatusCodesEnum.BadRequest,
@@ -127,31 +136,27 @@ export class QuizService {
     }
   }
 
-  /**
-   * Refactored: Match Session Submission Logic
-   * Merges Quiz logic with Economy rewards and LiveOps multipliers.
-   */
-  /**
-   * Refactored: Match Session Submission Logic
-   * Atomic Transaction: Merges Results, XP, and Economy rewards.
-   */
-  async submitQuizAnswers(quizId: number, answers: AnswerDto[], userId: number) {
-    const queryRunner = this.quizRepo.manager.connection.createQueryRunner();
+  async submitSessionResults(
+    sessionId: number,
+    answers: AnswerDto[],
+    userId: number,
+  ) {
+    const queryRunner = this.sessionRepo.manager.connection.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-      const quiz = await queryRunner.manager.findOne(Quiz, {
-        where: { id: quizId },
+      const session = await queryRunner.manager.findOne(MatchSession, {
+        where: { id: sessionId },
         relations: ['questions'],
       });
 
-      if (!quiz) {
-        throw new Error('Match/Session not found');
+      if (!session) {
+        throw new Error('Match session not found');
       }
 
       // 1. Evaluate Challenges
-      const results = quiz.questions.map((question) => {
+      const results = session.questions.map((question) => {
         const userAnswer = answers.find((a) => a.questionId === question.id);
         const isCorrect = userAnswer?.answer === question.correct_answer_index;
         const mark = isCorrect ? question.mark_value : 0;
@@ -167,24 +172,21 @@ export class QuizService {
       const baseScore = results.reduce((sum, r) => sum + r.mark, 0);
 
       // 2. Save Match Results
-      const quizResult = queryRunner.manager.create(QuizResult, {
-        quiz: quiz,
+      const matchResult = queryRunner.manager.create(MatchResult, {
+        quiz: session,
         user: { id: userId } as any,
         totalScore: baseScore,
         details: results,
       });
-      await queryRunner.manager.save(quizResult);
+      await queryRunner.manager.save(matchResult);
 
-      // 3. Reward Progression (XP) - Pass manager for transaction context
-      await this.playerProgressService.grantXP(userId, baseScore, 1, queryRunner.manager);
-      // Note: grantXP inside service uses its own dataSource.transaction by default.
-      // Ideally, it should accept an EntityManager to participate in this transaction.
-      // For now, I'll rely on idempotency keys inside grantXP/addCurrency if possible, 
-      // but the safest way is passing the manager.
-      
-      // Let's check grantXP signature again. It doesn't accept manager currently.
-      // I'll update grantXP later or use nested transactions if supported.
-      // Actually, I'll update grantXP to accept an optional manager.
+      // 3. Reward Progression (XP)
+      await this.playerProgressService.grantXP(
+        userId,
+        baseScore,
+        1,
+        queryRunner.manager,
+      );
 
       // 4. Reward Economy (Currency)
       const coinReward = Math.floor(baseScore / 5);
@@ -193,12 +195,12 @@ export class QuizService {
           userId,
           CurrencyType.COINS,
           coinReward,
-          `Match Reward: ${quiz.name}`,
+          `Match Reward: ${session.name}`,
           TransactionType.REWARD,
-          { quizId, score: baseScore },
-          `match_reward:${quizId}:${userId}:${Date.now()}`, // Idempotency
+          { sessionId, score: baseScore },
+          `match_reward:${sessionId}:${userId}:${Date.now()}`,
           undefined,
-          queryRunner.manager // PASS MANAGER
+          queryRunner.manager,
         );
       }
 
@@ -208,7 +210,7 @@ export class QuizService {
         SuccessStatusCodesEnum.Ok,
         'Match session processed successfully',
         {
-          sessionId: quizId,
+          sessionId,
           totalScore: baseScore,
           xpGained: baseScore,
           currencyGained: coinReward,
@@ -217,10 +219,12 @@ export class QuizService {
       );
     } catch (error) {
       await queryRunner.rollbackTransaction();
-      return this.response.error(ErrorStatusCodesEnum.BadRequest, error.message);
+      return this.response.error(
+        ErrorStatusCodesEnum.BadRequest,
+        error.message,
+      );
     } finally {
       await queryRunner.release();
     }
   }
 }
-

@@ -9,19 +9,19 @@ import {
   UseGuards,
   ParseIntPipe,
 } from '@nestjs/common';
-import { QuestionsService } from './questions.service';
-import { CreateQuestionDto } from './dto/create-question.dto';
-import { UpdateQuestionDto } from './dto/update-question.dto';
+import { ChallengeUnitsService } from './challenge-units.service';
+import { CreateChallengeUnitDto } from './dto/create-challenge-unit.dto';
+import { UpdateChallengeUnitDto } from './dto/update-challenge-unit.dto';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
-import { SubmitQuestionsDto } from './dto/submit_question.dto';
+import { SubmitQuestionsDto } from './dto/submit_challenge_unit.dto';
 
-@Controller('api/questions')
+@Controller('api/challenge-units')
 // @UseGuards(JwtAuthGuard)
-export class QuestionsController {
-  constructor(private readonly questionsService: QuestionsService) {}
+export class ChallengeUnitsController {
+  constructor(private readonly questionsService: ChallengeUnitsService) {}
 
   @Post()
-  create(@Body() createQuestionDto: CreateQuestionDto) {
+  create(@Body() createQuestionDto: CreateChallengeUnitDto) {
     return this.questionsService.create(createQuestionDto);
   }
 
@@ -46,7 +46,7 @@ export class QuestionsController {
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateQuestionDto: UpdateQuestionDto,
+    @Body() updateQuestionDto: UpdateChallengeUnitDto,
   ) {
     return this.questionsService.update(id, updateQuestionDto);
   }

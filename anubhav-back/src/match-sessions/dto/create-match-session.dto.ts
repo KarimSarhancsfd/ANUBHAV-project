@@ -6,11 +6,11 @@ import {
   IsNumber,
   IsString,
 } from 'class-validator';
-import { QuizLevel, QuizQuestionsType } from '../entities/quiz.entity';
+import { QuizLevel, QuizQuestionsType } from '../entities/match-session.entity';
 import { ApiProperty } from '@nestjs/swagger';
-import { Question } from 'src/questions/entities/question.entity';
+import { ChallengeUnit } from 'src/challenge-units/entities/challenge-unit.entity';
 
-export class CreateQuizDto {
+export class CreateMatchSessionDto {
   @IsString()
   @IsNotEmpty()
   @ApiProperty({ example: 'name', description: 'name' })
@@ -75,5 +75,5 @@ export class CreateQuizDto {
       },
     ],
   })
-  questions: Question[];
+  questions: ChallengeUnit[];
 }

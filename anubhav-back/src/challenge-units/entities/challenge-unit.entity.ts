@@ -1,14 +1,14 @@
-import { Quiz } from "src/quiz/entities/quiz.entity";
+import { MatchSession } from "src/match-sessions/entities/match-session.entity";
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
-export class Question {
+export class ChallengeUnit {
     @PrimaryGeneratedColumn()
     id: number
 
-    @ManyToOne(() => Quiz, (quiz) => quiz.id)
+    @ManyToOne(() => MatchSession, (quiz) => quiz.id)
     @JoinColumn({ name: 'quiz_id'})
-    quiz_id: Quiz
+    quiz_id: MatchSession
 
     /** @deprecated Use eventTrigger for gaming context */
     @Column()
