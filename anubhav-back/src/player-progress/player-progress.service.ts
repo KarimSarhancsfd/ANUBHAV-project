@@ -1,3 +1,9 @@
+/**
+ * @file player-progress.service.ts
+ * @description Service for managing player progress, XP, stats, and achievements.
+ * Handles all business logic related to player progression including level-ups,
+ * XP grants, stat modifications, and achievement unlocks.
+ */
 import { Injectable, Logger, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, EntityManager } from 'typeorm';
@@ -16,6 +22,11 @@ function progressCacheKey(userId: number) {
   return `progress:${userId}`;
 }
 
+/**
+ * Service for managing player progression, stats, and achievements.
+ * Provides methods for retrieving progress, granting XP, modifying stats,
+ * and unlocking achievements. Uses caching for performance optimization.
+ */
 @Injectable()
 export class PlayerProgressService {
   private readonly logger = new Logger(PlayerProgressService.name);
@@ -31,6 +42,12 @@ export class PlayerProgressService {
     private readonly cache: AppCacheService,
   ) {}
 
+  /**
+   * Retrieves dashboard data for a specific user.
+   * Fetches progress, wallet, and live ops status in parallel for performance.
+   * @param userId - The ID of the user to retrieve dashboard data for.
+   * @returns Dashboard object containing progress, economy, and live ops information.
+   */
   async getDashboardData(userId: number) {
     // PERF: All three reads run in parallel — previously sequential.
     // getProgress now serves from cache on the 2nd+ call within 5s.
@@ -62,6 +79,13 @@ export class PlayerProgressService {
     };
   }
 
+  /**
+   * Retrieves player progress data for a specific user.
+   * Uses a 5-second cache to avoid repeated database queries.
+   * Creates new progress record if none exists for the user.
+   * @param userId - The ID of the user to retrieve progress for.
+   * @returns The player's progress entity with level, XP, stats, skills, and achievements.
+   */
   async getProgress(userId: number): Promise<PlayerProgress> {
     // PERF: Serve from 5s cache on repeated reads (dashboard + /me are called frequently
     // by the Angular frontend on every login and route navigation).
@@ -92,6 +116,16 @@ export class PlayerProgressService {
     return progress;
   }
 
+  /**
+   * Grants XP to a player with optional multiplier.
+   * Handles level-up logic and awards coins and gems accordingly.
+   * Uses database transactions to ensure data consistency.
+   * @param userId - The ID of the user to grant XP to.
+   * @param amount - The base amount of XP to grant.
+   * @param multiplier - Optional multiplier to apply to the XP amount (default: 1).
+   * @param manager - Optional EntityManager for transaction support.
+   * @returns The updated player progress after granting XP.
+   */
   async grantXP(userId: number, amount: number, multiplier: number = 1, manager?: EntityManager): Promise<PlayerProgress> {
     // If a manager is provided, use it (part of an external transaction).
     // Otherwise, start a new transaction using the dataSource.
@@ -104,6 +138,15 @@ export class PlayerProgressService {
     });
   }
 
+  /**
+   * Internal method to perform the XP grant operation within a transaction.
+   * Handles level calculation, coin rewards, and gem rewards on level up.
+   * @param manager - The EntityManager to use for database operations.
+   * @param userId - The ID of the user to grant XP to.
+   * @param amount - The amount of XP to grant.
+   * @param multiplier - Optional multiplier to apply to the XP amount.
+   * @returns The updated player progress.
+   */
   private async _performGrantXP(manager: EntityManager, userId: number, amount: number, multiplier: number = 1): Promise<PlayerProgress> {
     let progress = await manager.findOne(PlayerProgress, {
       where: { userId },
@@ -175,6 +218,14 @@ export class PlayerProgressService {
     return savedProgress;
   }
 
+  /**
+   * Modifies a specific stat for a player.
+   * Uses a database transaction to prevent race conditions.
+   * @param userId - The ID of the user whose stat is being modified.
+   * @param statKey - The key of the stat to modify.
+   * @param value - The new value to set for the stat.
+   * @returns The updated player progress.
+   */
   async modifyStat(userId: number, statKey: string, value: any): Promise<PlayerProgress> {
     // PERF: Use a transaction to prevent race condition if two stats update simultaneously.
     const result = await this.dataSource.transaction(async (manager: EntityManager) => {
@@ -192,6 +243,14 @@ export class PlayerProgressService {
     return result;
   }
 
+  /**
+   * Unlocks an achievement for a player.
+   * Records the achievement with the current timestamp.
+   * Uses a database transaction to prevent race conditions.
+   * @param userId - The ID of the user unlocking the achievement.
+   * @param achievementKey - The key of the achievement to unlock.
+   * @returns The updated player progress with the new achievement.
+   */
   async unlockAchievement(userId: number, achievementKey: string): Promise<PlayerProgress> {
     // PERF: Use a transaction to prevent race condition on achievement unlock.
     const result = await this.dataSource.transaction(async (manager: EntityManager) => {
@@ -212,6 +271,12 @@ export class PlayerProgressService {
     return result;
   }
 
+  /**
+   * Applies a global modifier to all players.
+   * Currently logs the modifier; can be extended to update global configurations.
+   * @param modifier - The modifier to apply, containing type and value.
+   * @returns Void (no return value).
+   */
   async applyGlobalModifier(modifier: { type: string, value: any }): Promise<void> {
     // This could be stored in a cache or used to broadcast to all players
     this.logger.log(`Applying global modifier: ${JSON.stringify(modifier)}`);

@@ -1,3 +1,7 @@
+/**
+ * @file chat.gateway.ts
+ * @description WebSocket gateway for real-time chat functionality, handling private messages, group messages, and real-time economy events.
+ */
 import {
   ConnectedSocket,
   MessageBody,
@@ -10,6 +14,11 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 
+/**
+ * WebSocket gateway for real-time chat and economy events.
+ * Handles client connections, private messaging, group messaging, and wallet/purchase notifications.
+ * Uses dual-map structure for O(1) user-socket lookups.
+ */
 @WebSocketGateway({ cors: true })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
@@ -23,15 +32,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private socketToUser: Map<string, number> = new Map();
 
   /**
-   * PERF: handleConnection — No heavy lifting here to keep event loop free.
+   * Handles a new client connection.
+   * @param client - The connected Socket client
    */
   handleConnection(client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
   }
 
   /**
-   * PERF: handleDisconnect — O(1) cleanup.
-   * Ensures no memory leaks when players drop frequently.
+   * Handles client disconnection and cleans up user mappings.
+   * @param client - The disconnected Socket client
    */
   handleDisconnect(client: Socket) {
     const userId = this.socketToUser.get(client.id);
@@ -46,8 +56,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   /**
-   * Subscribe to personal room.
-   * Consistent naming: `user:${id}`
+   * Subscribes a user to their personal room for private messaging.
+   * @param data - Object containing the user ID
+   * @param data.userId - The ID of the user joining the room
+   * @param client - The Socket client joining the room
    */
   @SubscribeMessage('joinUserRoom')
   handleJoinUserRoom(
@@ -62,7 +74,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   /**
-   * Private Chat — Optimized Room Broadcast.
+   * Sends a private message from one user to another.
+   * @param data - Object containing sender, receiver, and message
+   * @param data.senderId - The ID of the message sender
+   * @param data.receiverId - The ID of the message receiver
+   * @param data.message - The message content
+   * @param client - The Socket client sending the message
    */
   @SubscribeMessage('privateMessage')
   handlePrivateMessage(
@@ -80,7 +97,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   /**
-   * Join Group — Consistency Check.
+   * Adds a user to a group chat room.
+   * @param data - Object containing group ID and user ID
+   * @param data.groupId - The ID of the group to join
+   * @param data.userId - The ID of the user joining the group
+   * @param client - The Socket client joining the group
    */
   @SubscribeMessage('joinGroup')
   handleJoinGroup(
@@ -93,7 +114,12 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   /**
-   * Group Chat — Multi-room broadcast.
+   * Broadcasts a message to all members of a group chat.
+   * @param data - Object containing sender, group, and message
+   * @param data.senderId - The ID of the message sender
+   * @param data.groupId - The ID of the target group
+   * @param data.message - The message content
+   * @param client - The Socket client sending the message
    */
   @SubscribeMessage('groupMessage')
   handleGroupMessage(
@@ -113,8 +139,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // ==================== ECONOMY REAL-TIME EVENTS ====================
 
   /**
-   * Emit wallet update to user
-   * PERF: High-frequency event. Avoid heavy logging.
+   * Emits a wallet update event to a specific user.
+   * @param userId - The ID of the user to receive the wallet update
+   * @param wallet - The updated wallet data
    */
   emitWalletUpdate(userId: number, wallet: any) {
     if (!userId) return;
@@ -122,7 +149,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   /**
-   * Emit purchase completion to user
+   * Emits a purchase completion event to a specific user.
+   * @param userId - The ID of the user who completed the purchase
+   * @param purchase - The purchase data
    */
   emitPurchaseCompleted(userId: number, purchase: any) {
     if (!userId) return;
@@ -131,7 +160,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   /**
-   * Emit item granted to user
+   * Emits an item granted event to a specific user.
+   * @param userId - The ID of the user receiving the item
+   * @param item - The item data
    */
   emitItemGranted(userId: number, item: any) {
     if (!userId) return;
@@ -140,7 +171,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   /**
-   * Emit transaction recorded to user
+   * Emits a transaction recorded event to a specific user.
+   * @param userId - The ID of the user who has the transaction
+   * @param transaction - The transaction data
    */
   emitTransactionRecorded(userId: number, transaction: any) {
     if (!userId) return;

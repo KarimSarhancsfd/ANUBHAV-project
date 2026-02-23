@@ -1,3 +1,7 @@
+/**
+ * @file category.module.ts
+ * @description NestJS module for configuring category-related dependencies
+ */
 import { Module } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { CategoryController } from './category.controller';
@@ -7,6 +11,9 @@ import { MulterModule } from '@nestjs/platform-express';
 import { multerCofig } from 'src/util/multer';
 import { Expose } from 'src/classes';
 
+/**
+ * Module for configuring category feature dependencies
+ */
 @Module({
   imports: [
     TypeOrmModule.forFeature([Category]),

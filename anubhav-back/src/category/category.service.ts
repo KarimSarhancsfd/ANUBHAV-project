@@ -1,3 +1,7 @@
+/**
+ * @file category.service.ts
+ * @description Service for managing category business logic
+ */
 import { Injectable } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
@@ -6,6 +10,9 @@ import { Category } from './entities/category.entity';
 import { Repository } from 'typeorm';
 import { ErrorStatusCodesEnum, Expose, SuccessStatusCodesEnum } from 'src/classes';
 
+/**
+ * Service for handling category-related operations
+ */
 @Injectable()
 export class CategoryService {
 
@@ -16,6 +23,13 @@ export class CategoryService {
   ) { }
 
 
+/**
+   * Creates a new category in the database
+   * @param createCategoryDto - Data transfer object containing category details
+   * @param image - Image filename for the category
+   * @param user - User object containing the user ID
+   * @returns Success response with created category or error response
+   */
   async create(createCategoryDto: CreateCategoryDto, image: string, user: any) {
     try {
       const category = this.categoryRepository.create({ ...createCategoryDto, image, user_id: user.userId })
@@ -26,6 +40,10 @@ export class CategoryService {
     }
   }
 
+/**
+   * Retrieves all categories from the database
+   * @returns Success response with array of categories or error response
+   */
   async findAll() {
     try {
       const result = await this.categoryRepository.find({ relations: { user_id: true } })
@@ -35,6 +53,11 @@ export class CategoryService {
     }
   }
 
+/**
+   * Retrieves a single category by ID
+   * @param id - The ID of the category to retrieve
+   * @returns Success response with category data or error response
+   */
   async findOne(id: number) {
     try {
       const category = await this.categoryRepository.findOne({ where: { id }, relations: { user_id: true } });
@@ -45,6 +68,14 @@ export class CategoryService {
     }
   }
 
+/**
+   * Updates an existing category
+   * @param id - The ID of the category to update
+   * @param updateCategoryDto - Data transfer object containing update details
+   * @param user - User object containing the user ID
+   * @param image - Optional image filename for the category
+   * @returns Success response with updated category or error response
+   */
   async update(id: number, updateCategoryDto: UpdateCategoryDto, user: any, image?: string,) {
     try {
       const categoty = await this.findOne(id)
@@ -56,6 +87,11 @@ export class CategoryService {
     }
   }
 
+/**
+   * Deletes a category from the database
+   * @param id - The ID of the category to delete
+   * @returns Success notification or error response
+   */
   async remove(id: number) {
     try {
       const category = await this.findOne(id)

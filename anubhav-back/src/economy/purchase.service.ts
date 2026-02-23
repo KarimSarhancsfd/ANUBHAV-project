@@ -1,3 +1,8 @@
+/**
+ * @file purchase.service.ts
+ * @description Purchase service handling in-app product purchases and payment processing.
+ * Manages product catalog, purchase initiation, payment verification, and currency fulfillment.
+ */
 import {
   Injectable,
   BadRequestException,
@@ -21,10 +26,22 @@ const PRODUCT_CATALOG = {
   starter_pack: { coins: 500, gems: 10, price: 4.99, currency: 'USD' },
 };
 
+/**
+ * @class PurchaseService
+ * @description Service for managing in-app purchases, product catalog, and payment workflows.
+ * Handles purchase initiation, payment verification, and automatic currency fulfillment.
+ */
 @Injectable()
 export class PurchaseService {
   private purchaseAttempts: Map<number, number[]> = new Map();
 
+  /**
+   * @constructor
+   * @param {Repository<Purchase>} purchaseRepository - TypeORM repository for Purchase entity
+   * @param {EconomyService} economyService - Service for managing user currencies
+   * @param {PaymentService} paymentService - Service for payment processing
+   * @param {DataSource} dataSource - Database data source for transactions
+   */
   constructor(
     @InjectRepository(Purchase)
     private purchaseRepository: Repository<Purchase>,
@@ -56,7 +73,14 @@ export class PurchaseService {
   }
 
   /**
-   * Initiate purchase
+   * @method initiatePurchase
+   * @description Initiates a new purchase by creating a payment intent and purchase record.
+   * Includes rate limiting to prevent purchase abuse.
+   * @param {number} userId - The unique identifier of the user making the purchase
+   * @param {string} productId - The identifier of the product being purchased
+   * @param {string} idempotencyKey - Unique key to prevent duplicate purchases
+   * @returns {Promise<{purchase: Purchase, paymentIntent: any}>} Purchase record and payment intent
+   * @throws {BadRequestException} If product ID is invalid or rate limit exceeded
    */
   async initiatePurchase(
     userId: number,
@@ -119,7 +143,14 @@ export class PurchaseService {
   }
 
   /**
-   * Verify and complete purchase
+   * @method verifyAndCompletePurchase
+   * @description Verifies payment with the payment provider and completes the purchase atomically.
+   * Grants the appropriate currency (coins/gems) to the user's wallet upon successful verification.
+   * @param {number} purchaseId - The unique identifier of the purchase to verify
+   * @param {string} paymentId - The payment provider's payment ID for verification
+   * @returns {Promise<Purchase>} The completed purchase entity
+   * @throws {NotFoundException} If purchase is not found
+   * @throws {BadRequestException} If payment verification fails or payment ID mismatch
    */
   async verifyAndCompletePurchase(
     purchaseId: number,
@@ -190,7 +221,11 @@ export class PurchaseService {
   }
 
   /**
-   * Get purchase by ID
+   * @method getPurchase
+   * @description Retrieves a specific purchase by its unique ID.
+   * @param {number} purchaseId - The unique identifier of the purchase
+   * @returns {Promise<Purchase>} The purchase entity
+   * @throws {NotFoundException} If purchase is not found
    */
   async getPurchase(purchaseId: number): Promise<Purchase> {
     const purchase = await this.purchaseRepository.findOne({
@@ -205,7 +240,13 @@ export class PurchaseService {
   }
 
   /**
-   * Get user purchase history
+   * @method getUserPurchases
+   * @description Retrieves the purchase history for a user with pagination support.
+   * Returns purchases in descending order by creation date.
+   * @param {number} userId - The unique identifier of the user
+   * @param {number} [limit=50] - Maximum number of purchases to return
+   * @param {number} [offset=0] - Number of purchases to skip for pagination
+   * @returns {Promise<Purchase[]>} Array of purchase entities
    */
   async getUserPurchases(
     userId: number,
@@ -222,7 +263,9 @@ export class PurchaseService {
   }
 
   /**
-   * Get product catalog
+   * @method getProductCatalog
+   * @description Returns the complete product catalog with available in-app purchase items.
+   * @returns {typeof PRODUCT_CATALOG} The product catalog object containing all available products
    */
   getProductCatalog(): typeof PRODUCT_CATALOG {
     return PRODUCT_CATALOG;

@@ -1,3 +1,8 @@
+/**
+ * @file main.ts
+ * @description Application bootstrap and configuration entry point.
+ * Initializes NestJS application with middleware, security, CORS, validation, and Swagger documentation.
+ */
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
@@ -6,6 +11,13 @@ import compression from 'compression';
 import helmet from 'helmet';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 
+/**
+ * @function bootstrap
+ * @description Initializes and starts the NestJS application.
+ * Configures global middleware, security headers, CORS, request validation,
+ * exception handling, and Swagger API documentation.
+ * @async
+ */
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
   const app = await NestFactory.create(AppModule);

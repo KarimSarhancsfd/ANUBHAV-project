@@ -1,3 +1,8 @@
+/**
+ * @file Match Sessions Service
+ * @description Business logic layer for managing match sessions. Handles session CRUD operations,
+ * answer evaluation, scoring calculation, XP rewards, and economy rewards for completed match sessions.
+ */
 import { Injectable } from '@nestjs/common';
 import { CreateMatchSessionDto as CreateSessionDto } from './dto/create-match-session.dto';
 import { UpdateMatchSessionDto as UpdateSessionDto } from './dto/update-match-session.dto';
@@ -18,6 +23,12 @@ import { LiveOpsService } from '../live-ops/live-ops.service';
 import { CurrencyType, TransactionType } from '../economy/enums/economy.enums';
 
 @Injectable()
+
+/**
+ * Match Sessions Service
+ * Core service handling match session business logic including CRUD operations, answer evaluation,
+ * score calculation, and reward distribution (XP and currency) upon session completion.
+ */
 export class MatchSessionsService {
   constructor(
     @InjectRepository(MatchSession)
@@ -31,6 +42,12 @@ export class MatchSessionsService {
     private liveOpsService: LiveOpsService,
   ) {}
 
+  /**
+   * Creates a new match session and optionally associates challenge questions with it.
+   * @param createSessionDto - Data transfer object containing session details (name, difficulty, questions).
+   * @param user - Authenticated user object containing userId.
+   * @returns Success response with created session data, or error response on failure.
+   */
   async createSession(createSessionDto: CreateSessionDto, user: any): Promise<any> {
     try {
       const { questions, ...data } = createSessionDto;
@@ -60,6 +77,10 @@ export class MatchSessionsService {
     }
   }
 
+  /**
+   * Retrieves all match sessions from the database with their associated questions.
+   * @returns Success response with array of all match sessions, or error response on failure.
+   */
   async findAllSessions(): Promise<any> {
     try {
       const result = await this.sessionRepo.find({
@@ -78,6 +99,11 @@ export class MatchSessionsService {
     }
   }
 
+  /**
+   * Retrieves a single match session by its unique identifier.
+   * @param id - The unique identifier of the match session.
+   * @returns Success response with the match session data, or error response if not found.
+   */
   async findSessionById(id: number): Promise<any> {
     try {
       const session = await this.sessionRepo.findOne({ where: { id } });
@@ -99,6 +125,12 @@ export class MatchSessionsService {
     }
   }
 
+  /**
+   * Updates an existing match session with new configuration data.
+   * @param id - The unique identifier of the match session to update.
+   * @param updateSessionDto - Data transfer object containing fields to update.
+   * @returns Success response with updated session data, or error response on failure.
+   */
   async updateSession(
     id: number,
     updateSessionDto: UpdateSessionDto,
@@ -120,6 +152,11 @@ export class MatchSessionsService {
     }
   }
 
+  /**
+   * Removes a match session from the database.
+   * @param id - The unique identifier of the match session to remove.
+   * @returns Success notification upon deletion, or error response on failure.
+   */
   async removeSession(id: number): Promise<any> {
     try {
       const session = await this.findSessionById(id);
@@ -136,6 +173,14 @@ export class MatchSessionsService {
     }
   }
 
+  /**
+   * Evaluates user answers, calculates score, grants XP and currency rewards, and persists match results.
+   * Uses database transaction to ensure data consistency across all operations.
+   * @param sessionId - The unique identifier of the completed match session.
+   * @param answers - Array of AnswerDto objects containing user's selected answers for each question.
+   * @param userId - The unique identifier of the user submitting the results.
+   * @returns Success response with score, XP gained, currency rewards, and detailed results, or error response on failure.
+   */
   async submitSessionResults(
     sessionId: number,
     answers: AnswerDto[],

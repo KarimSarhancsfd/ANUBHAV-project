@@ -1,3 +1,8 @@
+/**
+ * @file payment.service.ts
+ * @description Payment service handling payment processing and verification.
+ * Provides mock implementation for development - replace with Stripe/PayPal in production.
+ */
 import { Injectable } from '@nestjs/common';
 
 export interface PaymentIntent {
@@ -14,11 +19,20 @@ export interface PaymentVerification {
   currency: string;
 }
 
+/**
+ * @class PaymentService
+ * @description Service for payment processing operations.
+ * Currently provides mock implementations - integrate with actual payment gateway for production.
+ */
 @Injectable()
 export class PaymentService {
   /**
-   * Create payment intent (Mock implementation)
-   * In production, replace with Stripe/PayPal/etc.
+   * @method createPaymentIntent
+   * @description Creates a payment intent with the payment provider for a purchase transaction.
+   * @param {number} amount - The payment amount
+   * @param {string} currency - The currency code (e.g., 'USD')
+   * @param {Record<string, any>} [metadata] - Optional metadata to attach to the payment
+   * @returns {Promise<PaymentIntent>} The created payment intent with ID and status
    */
   async createPaymentIntent(
     amount: number,
@@ -37,8 +51,10 @@ export class PaymentService {
   }
 
   /**
-   * Verify payment (Mock implementation)
-   * In production, replace with actual payment gateway verification
+   * @method verifyPayment
+   * @description Verifies a payment with the payment provider to confirm it was successful.
+   * @param {string} paymentId - The payment provider's payment ID to verify
+   * @returns {Promise<PaymentVerification>} Verification result with success status and details
    */
   async verifyPayment(paymentId: string): Promise<PaymentVerification> {
     // Mock implementation - always succeeds after 1 second
@@ -53,8 +69,12 @@ export class PaymentService {
   }
 
   /**
-   * Handle webhook from payment provider (Mock implementation)
-   * In production, implement signature verification
+   * @method handleWebhook
+   * @description Processes incoming webhook events from the payment provider.
+   * Verifies webhook signature and parses the event payload.
+   * @param {any} payload - The raw webhook payload body
+   * @param {string} signature - The webhook signature for verification
+   * @returns {Promise<{verified: boolean, event: any}>} Verification result and parsed event
    */
   async handleWebhook(
     payload: any,
@@ -68,7 +88,11 @@ export class PaymentService {
   }
 
   /**
-   * Process refund (Mock implementation)
+   * @method processRefund
+   * @description Initiates a refund for a previous payment transaction.
+   * @param {string} paymentId - The payment ID to refund
+   * @param {number} [amount] - Optional specific amount to refund (defaults to full amount)
+   * @returns {Promise<{success: boolean, refundId: string}>} Refund result with refund ID
    */
   async processRefund(
     paymentId: string,

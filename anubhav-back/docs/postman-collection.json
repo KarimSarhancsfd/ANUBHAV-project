@@ -1,0 +1,277 @@
+{
+  "info": {
+    "name": "ANUBHAV Gaming Studio API",
+    "description": "Postman collection for testing ANUBHAV Gaming Studio Backend API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "User Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/user/auth/register",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"name\": \"Test User\",\n  \"country_id\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/user/auth/login",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Economy",
+      "item": [
+        {
+          "name": "Get Wallet",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/economy/wallet"
+          }
+        },
+        {
+          "name": "Get Transactions",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/economy/transactions"
+          }
+        },
+        {
+          "name": "Get Products",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/economy/products"
+          }
+        },
+        {
+          "name": "Get Inventory",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/economy/inventory"
+          }
+        },
+        {
+          "name": "Initiate Purchase",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/economy/purchase/initiate",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": 1,\n  \"idempotencyKey\": \"unique-key-123\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Player Progress",
+      "item": [
+        {
+          "name": "Get My Progress",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/player-progress/me"
+          }
+        },
+        {
+          "name": "Get Dashboard",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/player-progress/dashboard"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Challenge Units",
+      "item": [
+        {
+          "name": "Create Challenge",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/challenge-units",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Math Challenge\",\n  \"description\": \"Solve math problems\",\n  \"questions\": []\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Challenges",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/challenge-units"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Match Sessions",
+      "item": [
+        {
+          "name": "Create Session",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/match-sessions",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"match_type\": \"quick_play\",\n  \"status\": \"pending\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Sessions",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/match-sessions"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Live Ops",
+      "item": [
+        {
+          "name": "Get Status",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/live-ops/status"
+          }
+        },
+        {
+          "name": "Get Events",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/live-ops/events"
+          }
+        },
+        {
+          "name": "Get Active Events",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/live-ops/events/active"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Groups",
+      "item": [
+        {
+          "name": "Create Group",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/groups",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Group\",\n  \"description\": \"A test group\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Groups",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/groups"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Create Notification",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/notifications",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"New Event\",\n  \"message\": \"Check out the new event!\",\n  \"type\": \"info\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Notifications",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/notifications"
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI",
+      "item": [
+        {
+          "name": "Generate Summary",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/ai/summary",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Long book content to summarize...\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Generate Quiz",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/ai/quiz",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Content to generate quiz from...\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

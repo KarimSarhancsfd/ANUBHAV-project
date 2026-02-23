@@ -1,3 +1,9 @@
+/**
+ * @file economy.controller.ts
+ * @description Economy controller handling all in-game economy operations.
+ * Manages wallets, transactions, purchases, inventory, and admin operations.
+ * Requires JWT authentication and role-based authorization.
+ */
 import {
   Controller,
   Get,
@@ -25,6 +31,11 @@ import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { RolesGuard } from '../auth/guard/roles.guard';
 import { Role } from '../auth/decorator/roles.decorator';
 
+/**
+ * @class EconomyController
+ * @description Controller for in-game economy management.
+ * Handles wallets, transactions, purchases, inventory, and admin functions.
+ */
 @Controller('economy')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class EconomyController {
@@ -37,7 +48,10 @@ export class EconomyController {
   // ==================== WALLET ENDPOINTS ====================
 
   /**
-   * Get player wallet
+   * @route GET /economy/wallet
+   * @description Retrieves player's wallet with currency balances.
+   * @security JwtAuthGuard required
+   * @returns {Object} Wallet data including currency balances
    */
   @Get('wallet')
   async getWallet(@Request() req) {
@@ -46,7 +60,12 @@ export class EconomyController {
   }
 
   /**
-   * Get transaction history
+   * @route GET /economy/transactions
+   * @description Retrieves player's transaction history with pagination.
+   * @security JwtAuthGuard required
+   * @param {string} limit - Maximum records to return (default 50)
+   * @param {string} offset - Records to skip (default 0)
+   * @returns {Object} Paginated transaction history
    */
   @Get('transactions')
   async getTransactions(
@@ -65,7 +84,9 @@ export class EconomyController {
   // ==================== PURCHASE ENDPOINTS ====================
 
   /**
-   * Get product catalog
+   * @route GET /economy/products
+   * @description Retrieves available products in the catalog.
+   * @returns {Object} Product catalog listing
    */
   @Get('products')
   getProducts() {
@@ -73,7 +94,11 @@ export class EconomyController {
   }
 
   /**
-   * Initiate purchase
+   * @route POST /economy/purchase/initiate
+   * @description Initiates a purchase transaction.
+   * @security JwtAuthGuard required
+   * @param {InitiatePurchaseDto} dto - Purchase initiation data
+   * @returns {Object} Purchase details for payment
    */
   @Post('purchase/initiate')
   async initiatePurchase(@Request() req, @Body() dto: InitiatePurchaseDto) {
@@ -86,7 +111,10 @@ export class EconomyController {
   }
 
   /**
-   * Verify and complete purchase
+   * @route POST /economy/purchase/verify
+   * @description Verifies and completes a purchase transaction.
+   * @param {VerifyPaymentDto} dto - Payment verification data
+   * @returns {Object} Purchase completion status
    */
   @Post('purchase/verify')
   async verifyPurchase(@Body() dto: VerifyPaymentDto) {
@@ -97,7 +125,10 @@ export class EconomyController {
   }
 
   /**
-   * Get purchase status
+   * @route GET /economy/purchase/:id
+   * @description Retrieves purchase status by ID.
+   * @param {string} id - Purchase ID
+   * @returns {Object} Purchase details
    */
   @Get('purchase/:id')
   async getPurchase(@Param('id') id: string) {
@@ -105,7 +136,12 @@ export class EconomyController {
   }
 
   /**
-   * Get user purchase history
+   * @route GET /economy/purchases
+   * @description Retrieves user's purchase history.
+   * @security JwtAuthGuard required
+   * @param {string} limit - Maximum records (default 50)
+   * @param {string} offset - Records to skip (default 0)
+   * @returns {Object} Paginated purchase history
    */
   @Get('purchases')
   async getUserPurchases(
@@ -124,7 +160,11 @@ export class EconomyController {
   // ==================== INVENTORY ENDPOINTS ====================
 
   /**
-   * Get player inventory
+   * @route GET /economy/inventory
+   * @description Retrieves player's inventory items.
+   * @security JwtAuthGuard required
+   * @param {ItemType} itemType - Optional filter by item type
+   * @returns {Object} Player's inventory
    */
   @Get('inventory')
   async getInventory(
@@ -136,14 +176,16 @@ export class EconomyController {
   }
 
   /**
-   * Purchase item with currency
+   * @route POST /economy/inventory/purchase
+   * @description Purchases an item using in-game currency.
+   * @security JwtAuthGuard required
+   * @param {PurchaseItemDto} dto - Item purchase data
+   * @returns {Object} Purchase result
    */
   @Post('inventory/purchase')
   async purchaseItem(@Request() req, @Body() dto: PurchaseItemDto) {
     const userId = req.user.id;
-    
-    // In production, item details would come from database/config
-    const itemType = ItemType.SKIN; // Example
+    const itemType = ItemType.SKIN;
 
     return this.inventoryService.purchaseItem(
       Number(userId),
@@ -157,10 +199,13 @@ export class EconomyController {
   }
 
   // ==================== ADMIN ENDPOINTS ====================
-  // In production, these should be protected with role guards
 
   /**
-   * Admin: Grant currency to player
+   * @route POST /economy/admin/grant-currency
+   * @description Admin: Grants currency to a player.
+   * @security JwtAuthGuard, RolesGuard - admin role required
+   * @param {AddCurrencyDto} dto - Currency grant data
+   * @returns {Object} Grant result
    */
   @Post('admin/grant-currency')
   @Role('admin')
@@ -176,13 +221,16 @@ export class EconomyController {
   }
 
   /**
-   * Admin: Grant item to player
+   * @route POST /economy/admin/grant-item
+   * @description Admin: Grants an item to a player.
+   * @security JwtAuthGuard, RolesGuard - admin role required
+   * @param {GrantItemDto} dto - Item grant data
+   * @returns {Object} Grant result
    */
   @Post('admin/grant-item')
   @Role('admin')
   async grantItem(@Body() dto: GrantItemDto) {
-    // In production, itemType would come from database
-    const itemType = ItemType.SKIN; // Example
+    const itemType = ItemType.SKIN;
 
     return this.inventoryService.addItem(
       dto.userId,

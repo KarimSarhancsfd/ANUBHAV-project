@@ -1,3 +1,8 @@
+/**
+ * @file LiveOps Service
+ * @description Core service for LiveOps operations including system status management,
+ * event triggering, config updates, and activity logging.
+ */
 import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -15,6 +20,10 @@ import { AppCacheService } from '../common/cache/app-cache.service';
 const SYSTEM_STATUS_CACHE_KEY = 'liveops:system_status';
 const SYSTEM_STATUS_TTL_MS = 2_000;
 
+/**
+ * @class LiveOpsService
+ * @description Service for managing LiveOps system operations including events, configs, and player progression.
+ */
 @Injectable()
 export class LiveOpsService {
   private readonly logger = new Logger(LiveOpsService.name);
@@ -32,6 +41,12 @@ export class LiveOpsService {
     private readonly cache: AppCacheService,
   ) {}
 
+  /**
+   * @method getSystemStatus
+   * @description Retrieves the current system status including active events count,
+   * config count, and connected clients count. Results are cached for 2 seconds.
+   * @returns {Promise<Object>} Object containing status, activeEvents, configCount, connectedClients, and timestamp.
+   */
   async getSystemStatus() {
     // PERF: Cache system status for 2s — called on every dashboard load.
     // connectedClients count is a lightweight in-memory read, no DB hit.
@@ -43,6 +58,13 @@ export class LiveOpsService {
     return status;
   }
 
+  /**
+   * @method _buildSystemStatus
+   * @description Internal method that builds the system status object by fetching
+   * active events and config count in parallel.
+   * @returns {Promise<Object>} The built system status object.
+   * @private
+   */
   private async _buildSystemStatus() {
     // PERF: Fetch activeEvents and configCount in parallel (both are DB reads).
     const [activeEvents, configCount] = await Promise.all([
@@ -60,6 +82,13 @@ export class LiveOpsService {
     };
   }
 
+  /**
+   * @method triggerEvent
+   * @description Triggers a live event by ID, broadcasts it to connected clients,
+   * and executes type-specific handlers (XP boost, currency grant, stat modification, achievement unlock).
+   * @param {string} eventId - The unique identifier of the event to trigger.
+   * @returns {Promise<Object>} The triggered event data.
+   */
   async triggerEvent(eventId: string) {
     const event = await this.eventService.triggerEvent(eventId);
     
@@ -98,6 +127,13 @@ export class LiveOpsService {
     return event;
   }
 
+  /**
+   * @method grantCurrencyToUsers
+   * @description Grants currency to multiple users based on the event payload.
+   * Executes all grants concurrently for performance.
+   * @param {Object} event - The event object containing the payload with userIds, currencyType, amount, and reason.
+   * @returns {Promise<Array>} Array of currency transaction results.
+   */
   async grantCurrencyToUsers(event: any) {
     const { userIds, currencyType, amount, reason } = event.payload;
 
@@ -122,6 +158,12 @@ export class LiveOpsService {
     return results;
   }
 
+  /**
+   * @method pushConfigUpdate
+   * @description Pushes a configuration update to all connected clients via WebSocket.
+   * @param {string} key - The configuration key to push.
+   * @returns {Promise<Object>} The configuration data that was pushed.
+   */
   async pushConfigUpdate(key: string) {
     const config = await this.configService.getConfig(key);
     
@@ -137,6 +179,13 @@ export class LiveOpsService {
     return config;
   }
 
+  /**
+   * @method applyXPBoost
+   * @description Applies an XP boost to players. If target is 'ALL', applies a global modifier.
+   * Broadcasts the boost to relevant channels.
+   * @param {Object} event - The event object containing payload with multiplier, duration, and target.
+   * @returns {Promise<void>}
+   */
   async applyXPBoost(event: any) {
     const { multiplier, duration, target } = event.payload;
     if (target === 'ALL') {
@@ -152,6 +201,13 @@ export class LiveOpsService {
     await this.logAction(LiveOpsAction.EVENT_TRIGGERED, LiveOpsStatus.SUCCESS, { type: 'XP_BOOST', multiplier });
   }
 
+  /**
+   * @method grantXPToUsers
+   * @description Grants XP to multiple users. Uses global XP multiplier from config.
+   * Executes all grants in parallel and broadcasts individual progress updates.
+   * @param {Object} event - The event object containing payload with userIds and amount.
+   * @returns {Promise<Array>} Array of player progress update results.
+   */
   async grantXPToUsers(event: any) {
     const { userIds, amount } = event.payload;
 
@@ -173,6 +229,12 @@ export class LiveOpsService {
     return results;
   }
 
+  /**
+   * @method modifyPlayerStat
+   * @description Modifies a specific player stat and broadcasts the update.
+   * @param {Object} event - The event object containing payload with userId, statKey, and value.
+   * @returns {Promise<Object>} The updated player progress data.
+   */
   async modifyPlayerStat(event: any) {
     const { userId, statKey, value } = event.payload;
     const updated = await this.playerProgressService.modifyStat(userId, statKey, value);
@@ -183,6 +245,12 @@ export class LiveOpsService {
     return updated;
   }
 
+  /**
+   * @method unlockAchievement
+   * @description Unlocks an achievement for a player and broadcasts the unlock event.
+   * @param {Object} event - The event object containing payload with userId and achievementKey.
+   * @returns {Promise<Object>} The updated player progress data.
+   */
   async unlockAchievement(event: any) {
     const { userId, achievementKey } = event.payload;
     const updated = await this.playerProgressService.unlockAchievement(userId, achievementKey);
@@ -196,6 +264,12 @@ export class LiveOpsService {
     return updated;
   }
 
+  /**
+   * @method getRecentLogs
+   * @description Retrieves recent LiveOps activity logs.
+   * @param {number} limit - Maximum number of logs to retrieve (default: 50).
+   * @returns {Promise<Array>} Array of log entries ordered by timestamp descending.
+   */
   async getRecentLogs(limit: number = 50) {
     return this.logRepository.find({
       order: { timestamp: 'DESC' },
@@ -203,6 +277,16 @@ export class LiveOpsService {
     });
   }
 
+  /**
+   * @method logAction
+   * @description Internal method to log LiveOps actions to the database.
+   * @param {LiveOpsAction} action - The action type being logged.
+   * @param {LiveOpsStatus} status - The status of the action (SUCCESS or FAILURE).
+   * @param {Record<string, any>} details - Additional details about the action.
+   * @param {string} [error] - Optional error message if the action failed.
+   * @returns {Promise<void>}
+   * @private
+   */
   private async logAction(
     action: LiveOpsAction,
     status: LiveOpsStatus,
