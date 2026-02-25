@@ -65,7 +65,7 @@ Content-Type: application/json
 {
   "email": "player@gaming.com",
   "password": "securePass123",
-  "name": "Test Player",
+  "user_name": "Test Player",
   "country_id": 1
 }
 ```

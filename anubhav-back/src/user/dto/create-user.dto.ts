@@ -17,4 +17,9 @@ export class CreateUserDto {
   @IsNotEmpty()
   @ApiProperty({ example: 'country', description: 'country' })
   country_id: Country;
+
+  @IsString()
+  @IsNotEmpty()
+  @ApiProperty({ example: 'user_name', description: 'user name' })
+  user_name: string;
 }
