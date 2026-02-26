@@ -85,7 +85,7 @@ Content-Type: application/json
 #### Step 3: Test Protected Endpoints
 Use the token in Authorization header:
 ```
-Authorization: Bearer {{accessToken}}
+Authorization: Bearer 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwicm9sZSI6InVzZXIiLCJpYXQiOjE3NzIwMjQxMzcsImV4cCI6MTc3MjExMDUzN30.T-Zr0OfwzyZIgkjaIKFZT0IwDPFubZHXwtOfcshidpo'
 ```
 
 ### Testing Order (Recommended)
