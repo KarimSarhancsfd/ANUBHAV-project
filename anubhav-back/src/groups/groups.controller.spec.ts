@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { GroupsController } from './groups.controller';
 import { GroupsService } from './groups.service';
+import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 
 describe('GroupsController', () => {
   let controller: GroupsController;
@@ -21,12 +22,15 @@ describe('GroupsController', () => {
           },
         },
       ],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<GroupsController>(GroupsController);
     groupsService = module.get<GroupsService>(GroupsService);
   });
-   
+
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
@@ -40,12 +44,12 @@ describe('GroupsController', () => {
 
   describe('create', () => {
     it('should create a groups', async () => {
-      const groupsDto = { name: 'Test Groups' };
+      const groupsDto = { name: 'Test Groups' } as any;
       await controller.create(groupsDto);
       expect(groupsService.create).toHaveBeenCalledWith(groupsDto);
     });
   });
-   
+
   describe('findOne', () => {
     it('should return an array of groups', async () => {
       const id = '1';
@@ -57,7 +61,7 @@ describe('GroupsController', () => {
   describe('update', () => {
     it('should update a groups', async () => {
       const id = '1';
-      const groupsDto = { name: 'Updated Groups' };
+      const groupsDto = { name: 'Updated Groups' } as any;
       await controller.update(id, groupsDto);
       expect(groupsService.update).toHaveBeenCalledWith(+id, groupsDto);
     });
@@ -70,6 +74,4 @@ describe('GroupsController', () => {
       expect(groupsService.remove).toHaveBeenCalledWith(+id);
     });
   });
-
-
 });

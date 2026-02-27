@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { UserService } from '../user/user.service';
 import { JwtService } from '@nestjs/jwt';
-import { forwardRef } from '@nestjs/common';
 
 describe('AuthService', () => {
   let authService: AuthService;
@@ -36,6 +35,8 @@ describe('AuthService', () => {
     authService = module.get<AuthService>(AuthService);
     userService = module.get<UserService>(UserService);
     jwtService = module.get<JwtService>(JwtService);
+
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -44,39 +45,42 @@ describe('AuthService', () => {
 
   describe('generateAccessToken', () => {
     it('should generate an access token', async () => {
-      const mockPayload = { id: '1', username: 'testuser' };
-      const mockUser = { id: '1', username: 'testuser', email: 'test@example.com' };
+      const mockPayload = { id: 1, username: 'testuser' };
+      // UserService.findOne returns an Expose wrapper { data: user }
+      const mockUser = { id: 1, username: 'testuser', email: 'test@example.com', role: 'user' };
       const mockToken = 'mock.jwt.token';
 
-      mockUserService.findOne.mockResolvedValue(mockUser);
+      mockUserService.findOne.mockResolvedValue({ data: mockUser });
       mockJwtService.signAsync.mockResolvedValue(mockToken);
       mockUserService.updateToken.mockResolvedValue(undefined);
 
       const result = await authService.generateAccessToken(mockPayload);
 
       expect(mockUserService.findOne).toHaveBeenCalledWith(mockPayload.id);
-      expect(mockJwtService.signAsync).toHaveBeenCalledWith(mockPayload, { secret: "T!@!8934" });
-      expect(mockUserService.updateToken).toHaveBeenCalledWith(mockPayload.id, mockToken);
+      expect(mockJwtService.signAsync).toHaveBeenCalledWith(
+        { id: mockUser.id, role: mockUser.role },
+        { secret: 'T!@!8934' }
+      );
+      expect(mockUserService.updateToken).toHaveBeenCalledWith(mockUser.id, mockToken);
       expect(result).toEqual({ access_token: mockToken });
     });
 
-
     it('should throw an error if token generation fails', async () => {
-      const mockPayload = { id: '1', username: 'testuser' };
-      const mockUser = { id: '1', username: 'testuser', email: 'test@example.com' };
+      const mockPayload = { id: 1, username: 'testuser' };
+      const mockUser = { id: 1, username: 'testuser', email: 'test@example.com', role: 'user' };
 
-      mockUserService.findOne.mockResolvedValue(mockUser);
+      mockUserService.findOne.mockResolvedValue({ data: mockUser });
       mockJwtService.signAsync.mockRejectedValue(new Error('Token generation failed'));
 
       await expect(authService.generateAccessToken(mockPayload)).rejects.toThrow('Token generation failed');
     });
 
     it('should throw an error if token update fails', async () => {
-      const mockPayload = { id: '1', username: 'testuser' };
-      const mockUser = { id: '1', username: 'testuser', email: 'test@example.com' };
+      const mockPayload = { id: 1, username: 'testuser' };
+      const mockUser = { id: 1, username: 'testuser', email: 'test@example.com', role: 'user' };
       const mockToken = 'mock.jwt.token';
 
-      mockUserService.findOne.mockResolvedValue(mockUser);
+      mockUserService.findOne.mockResolvedValue({ data: mockUser });
       mockJwtService.signAsync.mockResolvedValue(mockToken);
       mockUserService.updateToken.mockRejectedValue(new Error('Token update failed'));
 

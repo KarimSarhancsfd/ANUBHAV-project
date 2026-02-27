@@ -43,10 +43,9 @@ describe('UserActivitiesController', () => {
   describe('create', () => {
     it('should create a useractivities', async () => {
       const useractivitiesDto: CreateUserActivitiesDto = {
-        userId: 1,
-        activityType: 'login',
-        description: 'User logged in',
-        timestamp: new Date().toISOString(),
+        user_id: 1 as any,
+        count: 1,
+        date: new Date().toISOString(),
       };
       await controller.create(useractivitiesDto);
       expect(service.create).toHaveBeenCalledWith(useractivitiesDto);
@@ -65,9 +64,8 @@ describe('UserActivitiesController', () => {
     it('should update a useractivities', async () => {
       const id = '1';
       const updateDto: UpdateUserActivitiesDto = {
-        activityType: 'logout',
-        description: 'User logged out',
-        timestamp: new Date().toISOString(),
+        count: 2,
+        date: new Date().toISOString(),
       };
       await controller.update(id, updateDto);
       expect(service.update).toHaveBeenCalledWith(+id, updateDto);

@@ -56,7 +56,7 @@ npm run test:cov
 ```
 
 ### Manual API Testing (Postman)
-
+but first create country to add it in the user auth body add its id in the user auth body without quotes
 #### Step 1: Register a User
 ```http
 POST {{baseUrl}}/user/auth/register
@@ -71,6 +71,7 @@ Content-Type: application/json
 ```
 
 #### Step 2: Login (Get JWT Token)
+
 ```http
 POST {{baseUrl}}/user/auth/login
 Content-Type: application/json
@@ -85,7 +86,7 @@ Content-Type: application/json
 #### Step 3: Test Protected Endpoints
 Use the token in Authorization header:
 ```
-Authorization: Bearer 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6NSwicm9sZSI6InVzZXIiLCJpYXQiOjE3NzIwMjQxMzcsImV4cCI6MTc3MjExMDUzN30.T-Zr0OfwzyZIgkjaIKFZT0IwDPFubZHXwtOfcshidpo'
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InVzZXIiLCJpYXQiOjE3NzIxNjUzMTQsImV4cCI6MTc3MjI1MTcxNH0.HHrEfU4gk_RCerEBJaqxteM8ELme6r9bTgZYxqgDzys
 ```
 
 ### Testing Order (Recommended)

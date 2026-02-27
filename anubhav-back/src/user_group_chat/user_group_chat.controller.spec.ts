@@ -8,7 +8,21 @@ describe('UserGroupChatController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UserGroupChatController],
-      providers: [UserGroupChatService],
+      providers: [
+        {
+          provide: UserGroupChatService,
+          useValue: {
+            createUserGroupChat: jest.fn(),
+            sendAndSaveMessage: jest.fn(),
+            findAllUserGroupChat: jest.fn(),
+            findOneUserGroupChatItem: jest.fn(),
+            updateUserGroupChat: jest.fn(),
+            removeUserGroupChat: jest.fn(),
+            getPrivateChatHistory: jest.fn(),
+            getGroupChatHistory: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
     controller = module.get<UserGroupChatController>(UserGroupChatController);

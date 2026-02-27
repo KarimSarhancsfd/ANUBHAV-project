@@ -16,11 +16,12 @@ describe('RolesGuard', () => {
     it('should allow access if no role is required', () => {
       jest.spyOn(reflector, 'get').mockReturnValue(undefined);
 
+      const handlerFn = jest.fn();
       const mockExecutionContext = {
         switchToHttp: () => ({
           getRequest: () => ({ user: { role: 'user' } }),
         }),
-        getHandler: jest.fn(),
+        getHandler: () => handlerFn,
       } as unknown as ExecutionContext;
 
       const result = rolesGuard.canActivate(mockExecutionContext);
@@ -32,11 +33,12 @@ describe('RolesGuard', () => {
     it('should allow access if the user has the required role', () => {
       jest.spyOn(reflector, 'get').mockReturnValue('admin');
 
+      const handlerFn = jest.fn();
       const mockExecutionContext = {
         switchToHttp: () => ({
           getRequest: () => ({ user: { role: 'admin' } }),
         }),
-        getHandler: jest.fn(),
+        getHandler: () => handlerFn,
       } as unknown as ExecutionContext;
 
       const result = rolesGuard.canActivate(mockExecutionContext);
@@ -48,11 +50,12 @@ describe('RolesGuard', () => {
     it('should throw UnauthorizedException if the user does not have the required role', () => {
       jest.spyOn(reflector, 'get').mockReturnValue('admin');
 
+      const handlerFn = jest.fn();
       const mockExecutionContext = {
         switchToHttp: () => ({
           getRequest: () => ({ user: { role: 'user' } }),
         }),
-        getHandler: jest.fn(),
+        getHandler: () => handlerFn,
       } as unknown as ExecutionContext;
 
       expect(() => rolesGuard.canActivate(mockExecutionContext)).toThrow(UnauthorizedException);
@@ -61,11 +64,12 @@ describe('RolesGuard', () => {
     it('should throw UnauthorizedException if there is no user in the request', () => {
       jest.spyOn(reflector, 'get').mockReturnValue('admin');
 
+      const handlerFn = jest.fn();
       const mockExecutionContext = {
         switchToHttp: () => ({
           getRequest: () => ({ user: null }),
         }),
-        getHandler: jest.fn(),
+        getHandler: () => handlerFn,
       } as unknown as ExecutionContext;
 
       expect(() => rolesGuard.canActivate(mockExecutionContext)).toThrow(UnauthorizedException);

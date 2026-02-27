@@ -22,6 +22,7 @@ describe('JwtStrategy', () => {
     }).compile();
 
     jwtStrategy = module.get<JwtStrategy>(JwtStrategy);
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -43,33 +44,36 @@ describe('JwtStrategy', () => {
       };
 
       await expect(
-        jwtStrategy.validate(requestWithoutToken, { id: 1 })
+        jwtStrategy.validate(requestWithoutToken, { id: 1, role: 'user' })
       ).rejects.toThrow(UnauthorizedException);
     });
 
     it('should throw UnauthorizedException if user is not found', async () => {
+      // UserService.findOne returns null when user doesn't exist
       mockUserService.findOne.mockResolvedValue(null);
 
       await expect(
-        jwtStrategy.validate(mockRequest, { id: 1 })
+        jwtStrategy.validate(mockRequest, { id: 1, role: 'user' })
       ).rejects.toThrow(UnauthorizedException);
     });
 
     it('should throw UnauthorizedException if token does not match', async () => {
-      mockUserService.findOne.mockResolvedValue({ id: 1, token: 'differentToken' });
+      // UserService.findOne returns Expose response: { data: user }
+      mockUserService.findOne.mockResolvedValue({ data: { id: 1, token: 'differentToken' } });
 
       await expect(
-        jwtStrategy.validate(mockRequest, { id: 1 })
+        jwtStrategy.validate(mockRequest, { id: 1, role: 'user' })
       ).rejects.toThrow(UnauthorizedException);
     });
 
     it('should return the user if validation succeeds', async () => {
-      const mockUser = { id: 1, token: 'validToken' };
-      mockUserService.findOne.mockResolvedValue(mockUser);
+      const mockUser = { id: 1, token: 'validToken', role: 'user' };
+      // UserService.findOne returns Expose response: { data: user }
+      mockUserService.findOne.mockResolvedValue({ data: mockUser });
 
-      const result = await jwtStrategy.validate(mockRequest, { id: 1 });
+      const result = await jwtStrategy.validate(mockRequest, { id: 1, role: 'user' });
 
-      expect(result).toEqual(mockUser);
+      expect(result).toEqual({ userId: mockUser.id, role: mockUser.role });
     });
   });
 

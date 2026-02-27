@@ -36,7 +36,7 @@ import { EconomyModule } from './economy/economy.module';
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: process.env.NODE_ENV === 'development', // Critical for safety
+      synchronize: process.env.NODE_ENV === 'true', // Critical for safety
       extra: {
         connectionLimit: 50, // Optimal for gaming scale
       },

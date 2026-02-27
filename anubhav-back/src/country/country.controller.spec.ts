@@ -8,7 +8,18 @@ describe('CountryController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [CountryController],
-      providers: [CountryService],
+      providers: [
+        {
+          provide: CountryService,
+          useValue: {
+            createCountry: jest.fn(),
+            findAllCountry: jest.fn(),
+            findOneCountry: jest.fn(),
+            updateCountry: jest.fn(),
+            removeCountry: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
     controller = module.get<CountryController>(CountryController);
